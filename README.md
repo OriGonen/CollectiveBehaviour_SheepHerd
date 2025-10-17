@@ -22,6 +22,7 @@ Possible expansions:
 - Add an additional herding dog.
 - Add different types of "personality" for sheep (e.g., 'courageous' sheep which stray less from the dog).
 - Add physical obstacles in the field.
+- Explore how much of a factor is the collective age and weight of the herd.
 We will analyze the behaviour of the expanded systems, and check whether they align with our expectations and theoretical knowledge.
 
 Throughout the semester we will write the reports in accordance to our milestones.
