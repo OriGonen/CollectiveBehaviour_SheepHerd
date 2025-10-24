@@ -22,9 +22,10 @@ def vecnorm_rows(v):
 
 The drives of the sheep:
 1. Repulsion from other sheep
-2. Repulsion from dog
-3. Attraction to center of local neighbors
-4. Random noise to the movement
+2. Attraction to center of local neighbors
+3. Velocity direction alignment to average of neighbors
+4. Repulsion from dog
+5. Random noise to the movement
 '''
 
 
@@ -63,7 +64,36 @@ def sheep_attraction_center(sheep_index, all_sheep_pos, num_neighbors_for_attrac
     return unit_vector(attraction_vector)
 
 
+# Velocity direction alignment to average of neighbors
+def sheep_alignment(sheep_velocities, neighbor_indices, num_alignment_neighbors):
+    # align velocity in accordance to random neighbors
+    chosen_neighbors = np.random.choice(neighbor_indices, num_alignment_neighbors, replace=False)
+    average_direction = np.sum(sheep_velocities[chosen_neighbors], axis=0)
+    return unit_vector(average_direction)
 
+# compute the next velocity for a sheep given the influences
+# repulsion from other sheep and the dog, attraction to center, velocity alignment, and noise
+def update_sheep_velocity(
+        sheep_positions, sheep_velocities, dog_position, sheep_index, sheep_repulsion_radius, dog_repulsion_radius,
+        num_neighbors_for_attraction, num_random_neighbors, num_alignment_neighbors, persistence_weight,
+        sheep_repulsion_weight, dog_repulsion_weight, attraction_weight, noise_weight, alignment_weight
+):
+    direction_to_dog = dog_position - sheep_positions[sheep_index]
+    distance_to_dog = np.linalg.norm(direction_to_dog)
+    direction_to_dog /= distance_to_dog if distance_to_dog > 0 else 1
+
+    # if the dog is far away
+    if distance_to_dog > dog_repulsion_radius:
+        repulsion_vector = sheep_repulsion_sheep(sheep_index, sheep_positions, sheep_repulsion_radius)
+        new_velocity = persistence_weight * sheep_velocities[sheep_index] + sheep_repulsion_weight * repulsion_vector
+        new_velocity = unit_vector(new_velocity)
+        return new_velocity
+
+    # else, the dog is nearby and is affecting the sheep
+    # TODO:
+
+
+# TODO: maybe delete???
 # function that integrates all the drives
 def move_sheep(sheep_index, all_sheep_pos, dog_pos):
     shp_pos = all_sheep_pos[sheep_index]
