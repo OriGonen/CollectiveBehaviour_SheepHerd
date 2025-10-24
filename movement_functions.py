@@ -16,9 +16,9 @@ def vecnorm_rows(v):
 # Movement functions for each iteration, as modeled in the paper
 
 '''
-    ------------------------------ 
+    -------------------------------- 
         Sheep Movement Functions
-    ------------------------------
+    --------------------------------
 
 The drives of the sheep:
 1. Repulsion from other sheep
