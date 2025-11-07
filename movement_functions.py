@@ -195,17 +195,3 @@ def update_dog_movement(sheep_positions, dog_position, sheep_repulsion_radius, n
         # the group is cohesive - the dog can drive the herd
         return dog_driving_mode(sheep_positions, dog_position, group_center, noise_weight, dog_speed, driving_offset)
 
-
-
-
-
-
-
-# TODO: maybe delete???
-# function that integrates all the drives
-def move_sheep(sheep_index, all_sheep_pos, dog_pos):
-    shp_pos = all_sheep_pos[sheep_index]
-    r_shp_dg = shp_pos - dog_pos
-    dist_rsd = r_shp_dg / np.linalg.norm(r_shp_dg)
-
-    raise NotImplementedError
