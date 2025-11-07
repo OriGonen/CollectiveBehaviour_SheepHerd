@@ -85,3 +85,5 @@ if __name__ == "__main__":
     # TODO:
     # - go over the code to make sure it's fine. comment: the dog sometimes is hesitating between two stray sheep but I think it makes sense with its movement algorithm
     # - make sure the agents are in the box always (maybe make it cyclic? idk)
+    # NOTE FOR ALL: download ffmpeg for animation!
+    # https://www.gyan.dev/ffmpeg/builds/
