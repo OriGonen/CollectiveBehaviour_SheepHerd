@@ -3,10 +3,16 @@ import numpy as np
 
 # utility
 def unit_vector(v):
-    """Return the unit vector of v, or zero if norm is 0."""
+    # return normalized v
     norm = np.linalg.norm(v)
+    # if v is the zero vector then return zero vector
     return v / norm if norm > 0 else np.zeros_like(v)
 
+
+def random_unit_vector():
+    # samples a random unit vector
+    angle = 2 * np.pi + np.random.rand()
+    return np.array([np.cos(angle), np.sin(angle)])
 
 def vecnorm_rows(v):
     """Return Euclidean norm for each row of a 2D array."""
@@ -71,6 +77,7 @@ def sheep_alignment(sheep_velocities, neighbor_indices, num_alignment_neighbors)
     average_direction = np.sum(sheep_velocities[chosen_neighbors], axis=0)
     return unit_vector(average_direction)
 
+
 # compute the next velocity for a sheep given the influences
 # repulsion from other sheep and the dog, attraction to center, velocity alignment, and noise
 def update_sheep_velocity(
@@ -82,15 +89,116 @@ def update_sheep_velocity(
     distance_to_dog = np.linalg.norm(direction_to_dog)
     direction_to_dog /= distance_to_dog if distance_to_dog > 0 else 1
 
-    # if the dog is far away
+    repulsion_vector = sheep_repulsion_sheep(sheep_index, sheep_positions, sheep_repulsion_radius)
+
+    # case: the dog is far away
+    # in this case, the sheep do not align and do not attract towards the center
     if distance_to_dog > dog_repulsion_radius:
-        repulsion_vector = sheep_repulsion_sheep(sheep_index, sheep_positions, sheep_repulsion_radius)
         new_velocity = persistence_weight * sheep_velocities[sheep_index] + sheep_repulsion_weight * repulsion_vector
         new_velocity = unit_vector(new_velocity)
         return new_velocity
 
     # else, the dog is nearby and is affecting the sheep
-    # TODO:
+    dog_avoidance_vector = -direction_to_dog
+    attraction_vector = sheep_attraction_center(sheep_index, sheep_positions, num_neighbors_for_attraction)
+
+    sheep_relative_positions = sheep_positions - sheep_positions[sheep_index]
+    sheep_distances = vecnorm_rows(sheep_relative_positions)
+    sorted_neighbor_indices = np.argsort(sheep_distances)
+    # start from 1 to exclude self
+    attraction_neighbors = sorted_neighbor_indices[1:num_neighbors_for_attraction + 1]
+    alignment_vector = sheep_alignment(sheep_velocities, attraction_neighbors, num_alignment_neighbors)
+
+    # add random noise
+    noise_vector = random_unit_vector()
+
+    # now, combine all vectors
+    updated_velocity = (persistence_weight * sheep_velocities[sheep_index]
+                        + sheep_repulsion_weight * repulsion_vector
+                        + dog_repulsion_weight * dog_avoidance_vector
+                        + attraction_weight * attraction_vector
+                        + alignment_weight * alignment_vector
+                        + noise_weight * noise_vector
+                        )
+    return unit_vector(updated_velocity)
+
+
+'''
+    ----------------------
+    Dog Movement Functions
+    ----------------------
+    
+    The dog has two modes of operation
+    1. Collecting: the dog moves to collect stray sheep
+            This happens when the group is not cohesive.
+    2. Driving: the dog moves behind the herd to drive it forward
+            This happens when the group is cohesive.
+            
+'''
+
+
+# the dog moves to collect stray sheep when the group is not cohesive
+def dog_collecting_mode(sheep_positions, dog_position, group_center, non_cohesive_distance,
+                        noise_weight, dog_speed, collecting_offset):
+    relative_positions_to_center = sheep_positions - group_center
+    distances_to_center = vecnorm_rows(relative_positions_to_center)
+
+    # find the stray-est sheep
+    stray_sheep_index = np.argmax(distances_to_center)
+    behind_distance = distances_to_center[stray_sheep_index] + collecting_offset
+    target_position = group_center + behind_distance * (relative_positions_to_center[stray_sheep_index] / distances_to_center[stray_sheep_index])
+    direction_to_target = unit_vector(target_position - dog_position)
+    next_velocity = unit_vector(direction_to_target + noise_weight * random_unit_vector())
+
+    # compute next dog position
+    next_position = dog_position + dog_speed * next_velocity
+    return next_position, next_velocity, "collect"
+
+
+# the dog moves behind the group and drives it forward when the herd is cohesive
+def dog_driving_mode(sheep_positions, dog_position, group_center, noise_weight, dog_speed, driving_offset):
+    # calculate the direction the dog moves to
+    behind_distance = np.linalg.norm(group_center) + driving_offset
+    desired_drive_position = behind_distance * unit_vector(group_center)
+    drive_direction = unit_vector(desired_drive_position - dog_position)
+    # add some random noise to next velocity direction
+    next_velocity = unit_vector(drive_direction + noise_weight * random_unit_vector())
+
+    next_position = dog_position + dog_speed * next_velocity
+    return next_position, next_velocity, "drive"
+
+
+# compute the next movement of the dog given the sheep positions and other influences
+def update_dog_movement(sheep_positions, dog_position, sheep_repulsion_radius, non_cohesive_distance,
+                        driving_offset, collecting_offset, noise_weight, dog_speed):
+    # check if dog is too close to the sheep
+    distances_to_sheep = vecnorm_rows(sheep_positions - dog_position)
+    if np.min(distances_to_sheep) <= sheep_repulsion_radius:
+        # dog is too close, need to slow down
+        braking_factor = 0.05  # greatly reduce the speed for the next step to not run into the sheep and scatter them
+        # instead of moving forward, move slowly to another direction
+        new_direction = unit_vector(np.random.randn(2))
+        new_position = dog_position + braking_factor * dog_speed * new_direction
+        return new_position, braking_factor*dog_speed*new_direction, "slow"
+
+    # else, there's no need to brake and the dog moves in accordance to cohesiveness of the herd
+    group_center = np.mean(sheep_positions, axis=0)
+    relative_positions_to_center = sheep_positions - group_center
+    distances_to_center = vecnorm_rows(relative_positions_to_center)
+
+    # check if the most strayed sheep is farther from the threshold for cohesiveness
+    if np.max(distances_to_center) >= non_cohesive_distance:
+        # the herd is not cohesive - the dog needs to collect
+        return dog_collecting_mode(sheep_positions, dog_position, group_center, non_cohesive_distance,
+                                   noise_weight, dog_speed, collecting_offset)
+    else:
+        # the group is cohesive - the dog can drive the herd
+        return dog_driving_mode(sheep_positions, dog_position, group_center, noise_weight, dog_speed, driving_offset)
+
+
+
+
+
 
 
 # TODO: maybe delete???

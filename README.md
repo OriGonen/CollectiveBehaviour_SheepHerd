@@ -11,12 +11,11 @@ We would like to see how sheep behave collectively in a herding setting. We will
 | name | github username |
 |------|-----------------|
 | Ori Gonen | _OriGonen_ |
-| Alja Dolenc | _ad67591_ |
 | Marko Muc | _MarkoMuc_ |
 | Jan Flajžík | _JanFlajz_ |
 
 
-## Our Plan Throughtout the Course
+## Our Plan Throughout the Course
 Review of concepts presented in the paper and their models. Expand on the model provided by the article.
 Possible expansions:
 - Add an additional herding dog.
