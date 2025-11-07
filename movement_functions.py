@@ -14,13 +14,13 @@ def random_unit_vector():
     angle = 2 * np.pi + np.random.rand()
     return np.array([np.cos(angle), np.sin(angle)])
 
+
 def vecnorm_rows(v):
     """Return Euclidean norm for each row of a 2D array."""
     return np.linalg.norm(v, axis=1)
 
 
-# Movement functions for each iteration, as modeled in the paper
-
+# below are the movement functions for each iteration, as modeled in the paper
 '''
     -------------------------------- 
         Sheep Movement Functions
@@ -44,7 +44,7 @@ def sheep_repulsion_sheep(sheep_index, all_sheep_pos, sheep_repulsion_radius):
     nearby_sheep_indices = nearby_sheep_indices[nearby_sheep_indices != sheep_index]
 
     if len(nearby_sheep_indices) > 0:
-        repulsion_vectors = relative_positions[nearby_sheep_indices] / distances[nearby_sheep_indices]  #[:, None]
+        repulsion_vectors = relative_positions[nearby_sheep_indices] / distances[nearby_sheep_indices][:, None]
         total_repulsion = -unit_vector(np.sum(repulsion_vectors, axis=0))
         return total_repulsion
 
@@ -100,7 +100,8 @@ def update_sheep_velocity(
 
     # else, the dog is nearby and is affecting the sheep
     dog_avoidance_vector = -direction_to_dog
-    attraction_vector = sheep_attraction_center(sheep_index, sheep_positions, num_neighbors_for_attraction)
+    attraction_vector = sheep_attraction_center(sheep_index, sheep_positions,
+                                                num_neighbors_for_attraction, num_random_neighbors)
 
     sheep_relative_positions = sheep_positions - sheep_positions[sheep_index]
     sheep_distances = vecnorm_rows(sheep_relative_positions)
@@ -124,9 +125,9 @@ def update_sheep_velocity(
 
 
 '''
-    ----------------------
-    Dog Movement Functions
-    ----------------------
+    ------------------------------
+        Dog Movement Functions
+    ------------------------------
     
     The dog has two modes of operation
     1. Collecting: the dog moves to collect stray sheep
@@ -195,3 +196,98 @@ def update_dog_movement(sheep_positions, dog_position, sheep_repulsion_radius, n
         # the group is cohesive - the dog can drive the herd
         return dog_driving_mode(sheep_positions, dog_position, group_center, noise_weight, dog_speed, driving_offset)
 
+
+
+'''
+    ----------------------------
+        simulation function
+    ----------------------------
+    the simulation function utilizes the movement functions to simulate the behaviour of the sheep and dog
+    the function will return arrays for positions, velocities, and dog-modes for each timestep.
+'''
+
+
+def simulate_model(
+        num_sheep, box_length,
+        sheep_repulsion_radius, dog_repulsion_radius,
+        num_neighbors_for_attraction, num_random_attraction_neighbors, num_alignment_neighbors,
+        sheep_speed, dog_speed, persistence_weight,
+        sheep_repulsion_weight, dog_repulsion_weight,
+        noise_weight, attraction_weight, alignment_weight,
+        non_cohesive_distance, driving_offset, collecting_offset, num_iterations
+):
+    # --- Initialization ---
+    random_angle = 2 * np.pi * np.random.rand()
+    start_side = box_length * np.array([np.cos(random_angle), np.sin(random_angle)])
+    sheep_positions = start_side - 3 * sheep_repulsion_radius * np.random.rand(num_sheep, 2)
+    dog_position = (start_side - 3 * dog_repulsion_radius * np.random.rand(1, 2)).flatten()
+
+    sheep_angles = 2 * np.pi * np.random.rand(num_sheep)
+    dog_angle = 2 * np.pi * np.random.rand()
+    sheep_velocities = np.column_stack((np.cos(sheep_angles), np.sin(sheep_angles)))
+    dog_velocity = np.array([np.cos(dog_angle), np.sin(dog_angle)])
+
+    # --- Data storage ---
+    sheep_positions_log = np.full((num_iterations, num_sheep, 2), np.nan)
+    sheep_velocities_log = np.full((num_iterations, num_sheep, 2), np.nan)
+    dog_positions_log = np.full((num_iterations, 2), np.nan)
+    dog_velocities_log = np.full((num_iterations, 2), np.nan)
+    dog_speeds_log = np.full((num_iterations,), np.nan)
+    collecting_flags = np.zeros(num_iterations)
+    driving_flags = np.zeros(num_iterations)
+    slowing_flags = np.zeros(num_iterations)
+
+    # Store initial state
+    sheep_positions_log[0] = sheep_positions
+    sheep_velocities_log[0] = sheep_velocities
+    dog_positions_log[0] = dog_position
+    dog_velocities_log[0] = dog_velocity
+    dog_speeds_log[0] = dog_speed
+
+    # --- Simulation loop ---
+    for t in range(1, num_iterations):
+
+        # print progress
+        if t % (num_iterations/10) == 0:
+            print(str(round(t/num_iterations, 2)*100) + " %")
+
+        # Sheep movement
+        for i in range(num_sheep):
+            new_velocity = update_sheep_velocity(
+                sheep_positions, sheep_velocities, dog_position, i,
+                sheep_repulsion_radius, dog_repulsion_radius,
+                num_neighbors_for_attraction, num_random_attraction_neighbors, num_alignment_neighbors,
+                persistence_weight, sheep_repulsion_weight, dog_repulsion_weight,
+                attraction_weight, noise_weight, alignment_weight
+            )
+            sheep_positions[i] += sheep_speed * new_velocity
+            sheep_velocities[i] = new_velocity
+
+        # Dog movement
+        dog_position, dog_velocity, mode = update_dog_movement(
+            sheep_positions, dog_position, sheep_repulsion_radius,
+            non_cohesive_distance, driving_offset, collecting_offset,
+            noise_weight, dog_speed
+        )
+
+        current_speed = dog_speed
+
+        if mode == "collect":
+            collecting_flags[t] = 1
+        elif mode == "drive":
+            driving_flags[t] = 1
+        elif mode == "slow":
+            slowing_flags[t] = 1
+            braking_factor = 0.05
+            current_speed = braking_factor * dog_speed  # braking if too close
+
+        # Store time step data
+        sheep_positions_log[t] = sheep_positions
+        sheep_velocities_log[t] = sheep_velocities
+        dog_positions_log[t] = dog_position
+        dog_velocities_log[t] = dog_velocity
+        dog_speeds_log[t] = current_speed
+
+    return (sheep_positions_log, dog_positions_log,
+            sheep_velocities_log, dog_velocities_log,
+            dog_speeds_log, collecting_flags, driving_flags, slowing_flags)
