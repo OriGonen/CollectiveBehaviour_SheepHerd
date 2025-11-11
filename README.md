@@ -27,3 +27,12 @@ We will analyze the behaviour of the expanded systems, and check whether they al
 
 Throughout the semester we will write the reports in accordance to our milestones.
 After finishing and polishing our final report, we will prepare the presentation to present in class.
+
+## Milestones:
+- First report 16.11.2025
+	- Create basic visualization
+	- Reimplement the original code in Python
+- Second report 7.12.2025
+	- TBD
+- Final report 11.1.2026
+	- TBD
