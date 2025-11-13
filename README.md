@@ -44,7 +44,7 @@ After finishing and polishing our final report, we will prepare the presentation
 First create a virtual environment and activate it:
 
 ```bash
-python -m venv venv
+python -m venv .venv
 source .venv/bin/activate
 ```
 OR
@@ -57,7 +57,7 @@ source .venv/bin/activate
 Install the dependencies:
 
 ```bash
-pip install -r requirments.txt
+pip install -r requirements.txt
 ```
 
 Run the simulation:
