@@ -1,9 +1,11 @@
 # CollectiveBehaviour_SheepHerd
-Our github repository for Collective Behaviour course 2025-2026
+Our GitHub repository for Collective Behaviour course 2025-2026.
 
-The paper we base our project on is [Collective responses of flocking sheep (Ovis aries) to a herding dog (border collie)](https://www.nature.com/articles/s42003-024-07245-8).
-The paper is also attached as a pdf file in the repository.
-[Github repository of the paper's model](https://github.com/tee-lab/collective-responses-of-flocking-sheep-to-herding-dog).
+The starting point of the project is the paper Collective responses of flocking sheep (Ovis aries) to a herding dog (border collie):
+ - [Online](https://www.nature.com/articles/s42003-024-07245-8).
+ - [Local](./res/Collective_responses_of_flocking_sheep_to_a_herding_dog.pdf).
+
+The GitHub repository of the paper (including the model and data) can be found here (https://github.com/tee-lab/collective-responses-of-flocking-sheep-to-herding-dog.
 
 We would like to see how sheep behave collectively in a herding setting. We will expand on the paper's presented model and compare our results to theirs.
 
@@ -36,3 +38,30 @@ After finishing and polishing our final report, we will prepare the presentation
 	- TBD
 - Final report 11.1.2026
 	- TBD
+
+## Running the simulation
+
+First create a virtual environment and activate it:
+
+```bash
+python -m venv venv
+source .venv/bin/activate
+```
+OR
+
+```bash
+uv venv
+source .venv/bin/activate
+```
+
+Install the dependencies:
+
+```bash
+pip install -r requirments.txt
+```
+
+Run the simulation:
+
+```bash
+python simulation.py
+```
