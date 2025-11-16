@@ -1,11 +1,17 @@
-import numpy as np
-import time
-
 from movement_functions import simulate_model
+from animation import HerdingAnimation
 
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
+# TODO:
+# - Add animation with barycenter arrows + individuals
+# - Add animation with "trail"
+# - Test UI
+# - Add recording
+# - Refactor all
+# NOTE FOR ALL: download ffmpeg for animation!
+# https://www.gyan.dev/ffmpeg/builds/
 
 def animate_herding(
         sheep_positions_log,
@@ -45,10 +51,7 @@ def animate_herding(
     print("saved!")
     return ani
 
-
 if __name__ == "__main__":
-
-
     # Example parameters — replace with your real ones
     num_sheep = 10
     box_length = 50
@@ -69,21 +72,17 @@ if __name__ == "__main__":
         sheep_repulsion_weight=1.5,
         dog_repulsion_weight=2.0,
         noise_weight=0.05,
-        attraction_weight=0.2,
+        attraction_weight=2.0,
         alignment_weight=0.1,
         non_cohesive_distance=3.0,
         driving_offset=2.0,
         collecting_offset=1.5,
-        num_iterations=400
+        num_iterations=800
     )
 
-    start_time = time.time()
-    animate_herding(sheep_positions_log, dog_positions_log, interval=40, box_length=box_length)
-    elapsed_time = time.time() - start_time
-    print(f"Elapsed time: {elapsed_time:.4f} seconds")
-
-    # TODO:
-    # - go over the code to make sure it's fine. comment: the dog sometimes is hesitating between two stray sheep but I think it makes sense with its movement algorithm
-    # - make sure the agents are in the box always (maybe make it cyclic? idk)
-    # NOTE FOR ALL: download ffmpeg for animation!
-    # https://www.gyan.dev/ffmpeg/builds/
+    anim = HerdingAnimation(sheep_positions_log, dog_positions_log, sheep_velocities_log, dog_velocities_log, dog_speeds_log=dog_speeds_log)
+    anim.run()
+    #start_time = time.time()
+    #animate_herding(sheep_positions_log, dog_positions_log, interval=40, box_length=box_length)
+    #elapsed_time = time.time() - start_time
+    #print(f"Elapsed time: {elapsed_time:.4f} seconds")

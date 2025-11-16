@@ -5,7 +5,7 @@ The starting point of the project is the paper Collective responses of flocking 
  - [Online](https://www.nature.com/articles/s42003-024-07245-8).
  - [Local](./res/Collective_responses_of_flocking_sheep_to_a_herding_dog.pdf).
 
-The GitHub repository of the paper (including the model and data) can be found here (https://github.com/tee-lab/collective-responses-of-flocking-sheep-to-herding-dog.
+The GitHub repository of the paper (including the model and data) can be found here https://github.com/tee-lab/collective-responses-of-flocking-sheep-to-herding-dog.
 
 We would like to see how sheep behave collectively in a herding setting. We will expand on the paper's presented model and compare our results to theirs.
 
