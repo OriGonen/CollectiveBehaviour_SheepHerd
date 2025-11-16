@@ -1,0 +1,181 @@
+\documentclass[9pt]{pnas-new}
+% Use the lineno option to display guide line numbers if required.
+% Note that the use of elements such as single-column equations
+% may affect the guide line number alignment. 
+
+%\RequirePackage[english,slovene]{babel} % when writing in slovene
+\RequirePackage[slovene,english]{babel} % when writing in english
+\DeclareUnicodeCharacter{202F}{ }
+\templatetype{pnasresearcharticle} % Choose template 
+% {pnasresearcharticle} = Template for a two-column research article
+% {pnasmathematics} = Template for a one-column mathematics article
+% {pnasinvited} = Template for a PNAS invited submission
+
+\selectlanguage{english}
+%\etal{in sod.} % comment out when writing in english
+%\renewcommand{\Authands}{ in } % comment out when writing in english
+%\renewcommand{\Authand}{ in } % comment out when writing in english
+
+\newcommand{\set}[1]{\ensuremath{\mathbf{#1}}}
+\renewcommand{\vec}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\uvec}[1]{\ensuremath{\hat{\vec{#1}}}}
+\newcommand{\const}[1]{{\ensuremath{\kappa_\mathrm{#1}}}} 
+
+\newcommand{\num}[1]{#1}
+
+\graphicspath{{./fig/}}
+
+\title{Evaluation of shepherding algorithms based on flock properties}
+
+% Use letters for affiliations, numbers to show equal authorship (if applicable) and to indicate the corresponding author
+\author{Ori Gonen}
+\author{Jan Flajžík}
+\author{Marko Muc}
+
+\affil{Collective behaviour course research seminar report} 
+
+% Please give the surname of the lead author for the running footer
+\leadauthor{JF} 
+
+\selectlanguage{english}
+
+% Please add here a significance statement to explain the relevance of your work
+\significancestatement{}{\textbf{We study, compare and compare existing sheep herding algorithms to find the optimal flock configuration which could increase the effectiveness of herding procedure.   } }
+
+\selectlanguage{english}
+
+% Please include corresponding author, author contribution and author declaration information
+%\authorcontributions{Please provide details of author contributions here.}
+%\authordeclaration{Please declare any conflict of interest here.}
+%\equalauthors{\textsuperscript{1}A.O.(Author One) and A.T. (Author Two) contributed equally to this work (remove if not applicable).}
+%\correspondingauthor{\textsuperscript{2}To whom correspondence should be addressed. E-mail: author.two\@email.com}
+
+% Keywords are not mandatory, but authors are strongly encouraged to provide them. If provided, please include two to five keywords, separated by the pipe symbol, e.g:
+\keywords{Sheep herding | Flock behavior | Collective behavior} 
+
+\begin{abstract}
+The purpose of this project is to study, implement, and evaluate existing shepherding algorithms based on various flock properties. In order to do so, we investigate how characteristics such as social heterogeneity of flock influence the convergence and overall effectiveness of herding algorithms. To achieve this, we implement several existing algorithms and evaluate their performance across different flock configurations.
+\end{abstract}
+
+\dates{\textbf{\today}}
+\program{BMA-RI}
+\vol{2025/26}
+\no{Group E} % group ID
+%\fraca{FRIteza/201516.130}
+
+\begin{document}
+
+% Optional adjustment to line up main text (after abstract) of first page with line numbers, when using both lineno and twocolumn options.
+% You should only change this length when you've finalised the article contents.
+\verticaladjustment{-2pt}
+
+\maketitle
+\thispagestyle{firststyle}
+\ifthenelse{\boolean{shortarticle}}{\ifthenelse{\boolean{singlecolumn}}{\abscontentformatted}{\abscontent}}{}
+
+% If your first paragraph (i.e. with the \dropcap) contains a list environment (quote, quotation, theorem, definition, enumerate, itemize...), the line after the list may have some extra indentation. If this is the case, add \parshape=0 to the end of the list environment.
+\dropcap{}  
+
+\section*{Introduction}
+\dropcap{H}erding of sheep is a classic example of the unwilling movement of a group of individuals with a common goal. As such, it is a unique and fascinating subject for studying. The knowledge obtained might be useful in various fields from  security to crowd control.
+
+\bigskip
+The motivation for this project arose from the observation of the geometric compactness of flock behavior during the herding process. Many examples can be found online\footnote{\href{https://www.youtube.com/watch?v=tDQw21ntR64}{https://www.youtube.com/watch?v=tDQw21ntR64}}. Although the process itself appears almost magical, our primary goal is to determine how the herding can be carried out as efficiently as possible and to identify the factors that most strongly influence its effectiveness.
+
+
+
+
+\section*{Related work}
+There are numerous studies examining the behavior of sheep flocks. Our primary reference is the paper by Jadhav et al.\ \cite{Jadhav2024CollectiveSheepDog}, in which the authors developed a model based on spatiotemporal data from a flock of 14 sheep. However, this approach has several limitations, including the small flock size and the lack of consideration for flock heterogeneity. As Bennett et al.\ demonstrated in \cite{flockheterogenity}, heterogeneity within social groups can negatively affect herding performance. In this paper, the authors developed multiple non-overlapping multiple social groups, with increasing the number of groups the performance decreased. The subgroups are mainly defined by two weighted forces: the force to interact with other sheep and the force to be repulsed from a dog.
+
+\bigskip
+
+There are also many existing studies that modeled the herding algorithms. Back in 2014 Daniel Strömbom et al. \cite{Strombom2014Shepherding} presented an algorithm based on real world data that worked with attraction–repulsion herding. The algorithm is based on dynamical switching between two modes: collecting the sheep when they are too dispersed, and driving them to the goal when they are cohesive.
+
+In a newer paper by Cai et al. \cite{algos} the authors present four herding algorithms that are also based on repulsion and attraction, but for reaching the goals, they introduce far-end and pausing mechanism that dynamically adjust the target point of a herd and pauses to optimize control and prevent circling respectively.
+
+\section*{Methods}
+To achieve the goal of this project, we are going to implement the original algorithm from \cite{Jadhav2024CollectiveSheepDog}, the Herding Algorithm With Dynamic Far-end and Pausing Mechanism introduced in \cite{algos} and the Strömboms  algorithm \cite{Strombom2014Shepherding} for reference.  Additionally, we divide the sheep into social subgroups based on the repulsion and attraction forces  inspired by ideas described in \cite{flockheterogenity}.
+
+\bigskip
+To perform the experiments, we will tweak the parameters and run differently set up  flocks on different algorithms. The main idea is to find the optimal parameters for each algorithm to converge as fast as possible. 
+
+\bigskip
+For the implementation, we use Python programming language with standard math libraries such as \textit{numpy} and \textit{PyGame} for graphical interface.
+The simulation we are using simple box without any obstacles.
+% unnecessary:
+% of size 100x100 pixels that will be enlarged in the future for flocks of bigger size.
+
+ 
+\bigskip
+
+In this iteration, we started by implementing the algorithms. In this case, we only implement  the herding algorithm from \cite{Jadhav2024CollectiveSheepDog}.
+The authors of the original paper created their model in Matlab, and have published the model in their github repository\footnote{\href{https://github.com/tee-lab/collective-responses-of-flocking-sheep-to-herding-dog}{https://github.com/tee-lab/collective-responses-of-flocking-sheep-to-herding-dog}}. \\
+In order to properly interact and experiment with the model, we re-implemented it in Python in our github repository\footnote{\href{https://github.com/OriGonen/CollectiveBehaviour_SheepHerd}{https://github.com/OriGonen/CollectiveBehaviour\_SheepHerd}}, and created a simple graphical interface that can be seen in figure \ref{fig:graphical_interface_demonstration}.
+
+ 
+The algorithm defines movements for the individual sheep and herding dog based on the measured spatiotemporal data. 
+The movement of sheep is based on the following factors:
+
+\begin{enumerate}
+    \item repulsion from the other sheep,
+    \item attraction to the center of local neighbors,
+    \item alignment of the velocity direction to the average of neighbors,
+    \item repulsion from the dog,
+    \item random noise.
+\end{enumerate}
+On the other hand, the dog has two modes of operation:
+\begin{enumerate}
+    \item \textbf{Collecting:} the dog moves to collect stray sheep.\\
+    This mode takes place when the group is not cohesive.
+    \item \textbf{Driving:} the dog moves behind the herd to drive it forward.\\
+    This mode occurs when the group is cohesive.
+\end{enumerate}
+
+
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\linewidth]{fig/image.png}
+    \caption{Graphical interface for displaying shepherding algorithms}
+    \label{fig:graphical_interface_demonstration}
+\end{figure}
+\subsection{Algorithm evaluation}
+
+To evaluate the existing herding algorithms, we will use the metrics of goal absement described as the distance between the goal location and the center of a sheep flock \cite{flockheterogenity}. The goal is to minimize this score. 
+The goal is also to measure the changing flock properties over time in different algorithm setting. Standard metrics such as elongation, cohesion, polarization, and others that are described in \cite{Jadhav2024CollectiveSheepDog}.
+
+To evaluate multiple algorithm for any given flock configuration, we will use simple success rate metric that is defined as a ratio of all positive tests to all test.   
+
+
+\section*{Results}
+
+Since the project is at its beginning, we have not obtained any meaningful results except for re-implementing the original algorithm in Python and creating a basic visualization shown in Figure \ref{fig:graphical_interface_demonstration}, but we expect several outcomes:
+
+\begin{enumerate}
+    \item we expect that introducing the heterogeneous social groups will not only affect the convergence rate, but will also negatively affect the cohesion of the flock.
+    \item we expect that not every parameter set up will lead to convergence in reasonable time which requires us to set the maximal step count of an algorithm.
+    \item we expect the performance of all algorithms to vary significantly across different flock initial configurations, but for any given configuration, their performance should be roughly the same.
+\end{enumerate}
+
+
+\section*{Discussion}
+The project is proceeding as planned. The only setback was the early departure of one team member, which resulted in minor communication issues that were quickly resolved. Also, the original project ideas that we described in our github readme file were reconsidered, therefore we decided not to implement terrain obstacles that were part of the original plan.   
+
+
+\acknow{\textbf{JF} wrote the report, \textbf{OG} re-implemented the original algorithm and \textbf{MM} created the graphic interface. }
+\showacknow % Display the acknowledgments section
+
+% \pnasbreak splits and balances the columns before the references.
+% If you see unexpected formatting errors, try commenting out this line
+% as it can run into problems with floats and footnotes on the final page.
+%\pnasbreak
+
+\begin{multicols}{2}
+\section*{\bibname}
+ %Bibliography
+\bibliography{./bib/bibliography}
+\end{multicols}
+
+\end{document}

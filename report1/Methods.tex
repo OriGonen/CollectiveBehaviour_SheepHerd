@@ -1,0 +1,22 @@
+\section*{Methods}
+The authors of the paper \cite{Jadhav2024CollectiveSheepDog} implemented their model in Matlab, and have published the model in \href{https://github.com/tee-lab/collective-responses-of-flocking-sheep-to-herding-dog}{their github repository}. \\
+In order to properly interact and experiment with the model, we re-implemented it in Python in \href{https://github.com/OriGonen/CollectiveBehaviour_SheepHerd}{our github repository}, and added UI for the simulation, to be further expanded and experimented upon.\\
+% TODO: Marko add a picture of the trail
+\subsection{Agent Movement}
+The drives of the sheep:
+\begin{enumerate}
+    \item Repulsion from other sheep
+    \item Attraction to center of local neighbors
+    \item Velocity direction alignment to average of neighbors
+    \item Repulsion from dog
+    \item Random noise
+\end{enumerate}
+The dog has two modes of operation
+\begin{enumerate}
+    \item \textbf{\underline{Collecting:}} the dog moves to collect stray sheep.\\
+    This mode takes place when the group is not cohesive.
+    \item \underline{\textbf{Driving:}} the dog moves behind the herd to drive it forward.\\
+    This mode takes place when the group is cohesive.
+\end{enumerate}
+
+
