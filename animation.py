@@ -25,7 +25,7 @@ class HerdingAnimation:
         self.paused = False
         self.speed = 1.0
         self.render_mode = 0
-        self.modes = ["Dots", "Dots + Arrows", "Trails"]
+        self.modes = ["Dots", "Dots + Arrows"]
 
         # Trail history
         self.sheep_trails = [deque(maxlen=trail_duration) for _ in range(self.num_sheep)]
@@ -213,8 +213,8 @@ class HerdingAnimation:
                 self.render_dots(screen, sheep_pos, dog_pos, vp_bounds)
             elif self.render_mode == 1:
                 self.render_dots_arrows(screen, sheep_pos, sheep_vel, dog_pos, dog_vel, vp_bounds)
-            elif self.render_mode == 2:
-                self.render_trails(screen, sheep_pos, dog_pos, vp_bounds)
+            #elif self.render_mode == 2:
+            #    self.render_trails(screen, sheep_pos, dog_pos, vp_bounds)
 
             # HUD
             status = "PAUSED" if self.paused else "RUNNING"

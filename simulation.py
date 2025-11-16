@@ -5,10 +5,11 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 # TODO:
-# - Add animation with "trail"
 # - Add animation with barycenter arrows + individuals
+# - Add animation with "trail"
 # - Test UI
-# - go over the code to make sure it's fine. comment: the dog sometimes is hesitating between two stray sheep but I think it makes sense with its movement algorithm
+# - Add recording
+# - Refactor all
 # NOTE FOR ALL: download ffmpeg for animation!
 # https://www.gyan.dev/ffmpeg/builds/
 
