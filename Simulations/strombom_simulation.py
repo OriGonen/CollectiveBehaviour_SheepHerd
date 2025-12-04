@@ -1,4 +1,5 @@
-from movement_functions import simulate_model
+from Movement_Algorithms.Stormbom_movement_functions import simulate_model_strombom_main
+
 from animation import HerdingAnimation
 
 import matplotlib.pyplot as plt
@@ -52,33 +53,46 @@ def animate_herding(
     return ani
 
 if __name__ == "__main__":
-    # Example parameters — replace with your real ones
-    num_sheep = 10
-    box_length = 50
+    params = dict(
+
+        num_sheep=30,
+
+
+        box_length=100.0,
+
+        # interactions distances
+        ra_dist=2.0,  # sheep–sheep repulsion distance
+        rs_range=25.0,  # dog detection range
+
+        n_neighbors=4,
+
+        # movement per timestep
+        d_step=1.0,
+        ds=2.0,  # dog is faster than sheep
+
+
+        h_weight=0.5,
+        c_weight=1,
+        ra_weight=2.0,
+        rs_weight=1.5,
+
+        # noise and grazing
+        e_noise=0.03,
+        p_move=0.05,
+
+
+        collecting_offset=0.0,
+        driving_offset=10.0,
+
+        # goal
+        goal=(0.0, 0.0),
+
+        num_iterations=8000
+    )
 
     sheep_positions_log, dog_positions_log, \
         sheep_velocities_log, dog_velocities_log, \
-        dog_speeds_log, collecting_flags, driving_flags, slowing_flags = simulate_model(
-        num_sheep,
-        box_length=box_length,
-        sheep_repulsion_radius=1.0,
-        dog_repulsion_radius=5.0,
-        num_neighbors_for_attraction=10,
-        num_random_attraction_neighbors=5,
-        num_alignment_neighbors=5,
-        sheep_speed=0.1,
-        dog_speed=0.25,
-        persistence_weight=0.5,
-        sheep_repulsion_weight=1.5,
-        dog_repulsion_weight=2.0,
-        noise_weight=0.05,
-        attraction_weight=2.0,
-        alignment_weight=0.1,
-        non_cohesive_distance=3.0,
-        driving_offset=2.0,
-        collecting_offset=1.5,
-        num_iterations=800
-    )
+        dog_speeds_log, collecting_flags, driving_flags, slowing_flags = simulate_model_strombom_main(**params)
 
     anim = HerdingAnimation(sheep_positions_log, dog_positions_log, sheep_velocities_log, dog_velocities_log, dog_speeds_log=dog_speeds_log)
     anim.run()

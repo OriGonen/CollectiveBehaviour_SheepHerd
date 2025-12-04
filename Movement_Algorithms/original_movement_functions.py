@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 
 
@@ -11,7 +13,7 @@ def unit_vector(v):
 
 def random_unit_vector():
     # samples a random unit vector
-    angle = 2 * np.pi + np.random.rand()
+    angle = 2 * np.pi * np.random.rand()
     return np.array([np.cos(angle), np.sin(angle)])
 
 
@@ -247,9 +249,8 @@ def simulate_model(
     # --- Simulation loop ---
     for t in range(1, num_iterations):
 
-        # print progress
-        if t % (num_iterations/10) == 0:
-            print(str(round(t/num_iterations, 2)*100) + " %")
+        # print percentage progress
+        sys.stdout.write(f"\r{(t + 1) / num_iterations * 100:6.2f} %")
 
         # Sheep movement
         for i in range(num_sheep):
