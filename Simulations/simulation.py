@@ -81,7 +81,9 @@ if __name__ == "__main__":
         num_iterations=800
     )
 
-    anim = HerdingAnimation(sheep_positions_log, dog_positions_log, sheep_velocities_log, dog_velocities_log, dog_speeds_log=dog_speeds_log)
+    anim = HerdingAnimation(sheep_positions_log, dog_positions_log,
+                            sheep_velocities_log, dog_velocities_log, dog_speeds_log=dog_speeds_log,
+                            show_metrics=True)
     anim.run()
     #start_time = time.time()
     #animate_herding(sheep_positions_log, dog_positions_log, interval=40, box_length=box_length)

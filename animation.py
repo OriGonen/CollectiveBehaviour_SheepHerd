@@ -1,15 +1,14 @@
 import pygame
 import numpy as np
 from collections import deque
-
+from Metrics.metrics import calculate_cohesion, calculate_polarization
 
 class HerdingAnimation:
-    def __init__(self, sheep_pos_log, dog_pos_log, sheep_vel_log, dog_vel_log,
-                 dog_speeds_log=None, window_size=800, trail_duration=50):
-        """
-        sheep_vel_log: (num_frames, num_sheep, 2)
-        dog_vel_log: (num_frames, 2)
-        """
+    def __init__(
+            self, sheep_pos_log, dog_pos_log, sheep_vel_log, dog_vel_log,
+            dog_speeds_log=None, window_size=800, trail_duration=50,
+            show_metrics=True
+    ):
         self.sheep_pos_log = sheep_pos_log
         self.dog_pos_log = dog_pos_log
         self.sheep_vel_log = sheep_vel_log
@@ -19,7 +18,18 @@ class HerdingAnimation:
         self.num_frames = sheep_pos_log.shape[0]
         self.num_sheep = sheep_pos_log.shape[1]
         self.trail_duration = trail_duration
+        self.show_metrics = show_metrics
 
+        if self.show_metrics:
+            self.cohesion_log = np.zeros(self.num_frames)
+            self.polarization_log = np.zeros(self.num_frames)
+            for t in range(self.num_frames):
+                self.cohesion_log[t] = calculate_cohesion(
+                    sheep_pos_log[t]
+                )
+                self.polarization_log[t] = calculate_polarization(
+                    sheep_vel_log[t]
+                )
         # State
         self.frame = 0
         self.paused = False
@@ -222,9 +232,20 @@ class HerdingAnimation:
 
             hud_texts = [
                 f"Frame: {self.frame}/{self.num_frames}  Speed: {self.speed:.1f}x  {status}  Mode: {self.modes[self.render_mode]}",
-                f"Flock: ({flock_center[0]:.1f}, {flock_center[1]:.1f}){dog_speed_str}",
-                "SPACE: pause | +/-: speed | R: reset | M: mode | Q: quit"
+                f"Flock: ({flock_center[0]:.1f}, {flock_center[1]:.1f}){dog_speed_str}"
             ]
+
+            # Add metrics if enabled
+            if self.show_metrics:
+                metrics_text = (
+                    f"Cohesion: {self.cohesion_log[self.frame]:.3f}m  "
+                    f"Polarization: {self.polarization_log[self.frame]:.3f}"
+                )
+                hud_texts.insert(2, metrics_text)
+
+            hud_texts.append(
+                "SPACE: pause | +/-: speed | R: reset | M: mode | Q: quit"
+            )
 
             for i, text in enumerate(hud_texts):
                 surf = font.render(text, True, self.text_color)

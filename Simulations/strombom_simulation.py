@@ -54,9 +54,7 @@ def animate_herding(
 
 if __name__ == "__main__":
     params = dict(
-
         num_sheep=30,
-
 
         box_length=100.0,
 
@@ -70,7 +68,6 @@ if __name__ == "__main__":
         d_step=1.0,
         ds=2.0,  # dog is faster than sheep
 
-
         h_weight=0.5,
         c_weight=1,
         ra_weight=2.0,
@@ -79,7 +76,6 @@ if __name__ == "__main__":
         # noise and grazing
         e_noise=0.03,
         p_move=0.05,
-
 
         collecting_offset=0.0,
         driving_offset=10.0,
@@ -94,7 +90,9 @@ if __name__ == "__main__":
         sheep_velocities_log, dog_velocities_log, \
         dog_speeds_log, collecting_flags, driving_flags, slowing_flags = simulate_model_strombom_main(**params)
 
-    anim = HerdingAnimation(sheep_positions_log, dog_positions_log, sheep_velocities_log, dog_velocities_log, dog_speeds_log=dog_speeds_log)
+    anim = HerdingAnimation(sheep_positions_log, dog_positions_log,
+                            sheep_velocities_log, dog_velocities_log, dog_speeds_log=dog_speeds_log,
+                            show_metrics=True)
     anim.run()
     #start_time = time.time()
     #animate_herding(sheep_positions_log, dog_positions_log, interval=40, box_length=box_length)
