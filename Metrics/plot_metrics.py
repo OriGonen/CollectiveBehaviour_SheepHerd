@@ -81,7 +81,8 @@ def plot_metrics(
     plt.tight_layout()
     plt.savefig(save_path, dpi=300, bbox_inches="tight")
     print(f"Metrics plot saved to {save_path}")
-    plt.show()
+    # if running directly in pycharm comment plt.show()
+    #plt.show()
 
     # Print summary statistics
     print_metrics_summary(metrics, algorithm_name)
@@ -180,7 +181,8 @@ def plot_metrics_comparison(
     plt.tight_layout()
     plt.savefig(save_path, dpi=300, bbox_inches="tight")
     print(f"Comparison plot saved to {save_path}\n")
-    plt.show()
+    #if running directly in pycharm comment plt.show()
+    #plt.show()
 
     # Print comparison table
     print_comparison_summary(metrics_list, algorithm_names)
@@ -296,7 +298,7 @@ if __name__ == "__main__":
 
         original_params = dict(
             num_sheep=30,
-            box_length=50,
+            box_length=100,
             sheep_repulsion_radius=1.0,
             dog_repulsion_radius=5.0,
             num_neighbors_for_attraction=10,
