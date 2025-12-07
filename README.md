@@ -31,10 +31,11 @@ After finishing and polishing our final report, we will prepare the presentation
 	- ~~Reimplement the original code in Python~~
 	- The first report is available [here](https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/tree/firstReport/report1)
 - Second report 7.12.2025
-	- Implement all the existing sheep herding algorithms as proposed
-	- Implement basic version of sheep social groups
-	- Perform basic experiments with the algorithms
+	- ~~Implement existing sheep herding algorithms as proposed~~
+	- ~~Perform basic experiments with the algorithms~~
+	- The second report is available [here](https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/tree/second_report/second20report)
 - Final report 11.1.2026
+	- Implement basic version of sheep social groups
 	- Perform all experiments with heterogenous social groups
 	- Create a simulation video that shows how the algorithms behave based on flock properties
 
