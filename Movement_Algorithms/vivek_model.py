@@ -1,10 +1,10 @@
 import numpy as np
 # Implementation of the Vivek et al. herding model
 
-
 def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                   k_alg, vs, v_dog, h, rho_a, rho_d, e, c, alg_str, f_n,
                   pd, pc, n_iter):
+
     # Initialization
     theta_pos = 2 * np.pi * np.random.rand()
     str_side = box_length * np.array([np.cos(theta_pos), np.sin(theta_pos)])
@@ -17,9 +17,9 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
     vel_d = np.array([np.cos(theta_d), np.sin(theta_d)])
     spd_s = np.ones(no_shp) * vs
 
-    # State
-    pos_s_dat = np.full((no_shp, 2, n_iter), np.nan)
-    vel_s_dat = np.full((no_shp, 2, n_iter), np.nan)
+    # Storage arrays: (n_iter, no_shp, 2) for easier time-stepping
+    pos_s_dat = np.full((n_iter, no_shp, 2), np.nan)
+    vel_s_dat = np.full((n_iter, no_shp, 2), np.nan)
     pos_d_dat = np.full((n_iter, 2), np.nan)
     vel_d_dat = np.full((n_iter, 2), np.nan)
     spd_d_dat = np.full(n_iter, np.nan)
@@ -28,10 +28,10 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
     force_slow_t = np.full(n_iter, np.nan)
 
     # Initial conditions
-    pos_s_dat[:, :, 0] = pos_s
-    vel_s_dat[:, :, 0] = vel_s
-    pos_d_dat[0, :] = pos_d
-    vel_d_dat[0, :] = vel_d
+    pos_s_dat[0] = pos_s
+    vel_s_dat[0] = vel_s
+    pos_d_dat[0] = pos_d
+    vel_d_dat[0] = vel_d
     spd_d_dat[0] = v_dog
 
     # Time evolution
@@ -65,9 +65,9 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                     vel_next = vel_next / np.linalg.norm(vel_next)
 
                     pos_s[i, :] = pos_s[i, :] + vs * vel_next
-                    vel_s_dat[i, :, t] = vel_next
+                    vel_s_dat[t, i] = vel_next
                 else:
-                    vel_s_dat[i, :, t] = vel_s_t_1[i, :]
+                    vel_s_dat[t, i] = vel_s_t_1[i, :]
             else:
                 # Dog is visible
                 r_ij = pos_s_t_1 - pos_s_t_1[i, :]
@@ -115,7 +115,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
 
                 vel_next = vel_next / np.linalg.norm(vel_next)
                 pos_s[i, :] = pos_s[i, :] + vs * vel_next
-                vel_s_dat[i, :, t] = vel_next
+                vel_s_dat[t, i] = vel_next
                 spd_s[i] = vs
 
         # Dog movement
@@ -125,7 +125,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
         if np.min(dist_rds) <= rad_rep_s:
             # Too close to sheep, slow down
             pos_d = pos_d + 0.05 * vel_d_t_1
-            vel_d_dat[t, :] = vel_d_t_1
+            vel_d_dat[t] = vel_d_t_1
             spd_d_dat[t] = 0.05
             force_slow_t[t] = 1
         else:
@@ -166,14 +166,14 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                 drive_t[t] = 1
 
             vel_d_t_1 = vel_next
-            vel_d_dat[t, :] = vel_next
+            vel_d_dat[t] = vel_next
             spd_d_dat[t] = v_dog
 
-        pos_s_dat[:, :, t] = pos_s
+        pos_s_dat[t] = pos_s
         pos_s_t_1 = pos_s.copy()
-        vel_s_t_1 = vel_s_dat[:, :, t]
+        vel_s_t_1 = vel_s_dat[t]
 
-        pos_d_dat[t, :] = pos_d
+        pos_d_dat[t] = pos_d
         pos_d_t_1 = pos_d.copy()
 
     return (pos_s_dat, pos_d_dat, vel_s_dat, vel_d_dat, spd_d_dat,
