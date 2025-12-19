@@ -2,13 +2,13 @@ import sys
 
 import numpy as np
 
-
+EPS = 1e-8  # epsilon, for approximating little things
 # utility
 def unit_vector(v):
     # return normalized v
     norm = np.linalg.norm(v)
     # if v is the zero vector then return zero vector
-    return v / norm if norm > 0 else np.zeros_like(v)
+    return v / norm if norm > EPS else random_unit_vector()
 
 
 def random_unit_vector():
@@ -173,14 +173,14 @@ def dog_driving_mode(sheep_positions, dog_position, group_center, noise_weight, 
 
 # compute the next movement of the dog given the sheep positions and other influences
 def update_dog_movement(sheep_positions, dog_position, sheep_repulsion_radius, non_cohesive_distance,
-                        driving_offset, collecting_offset, noise_weight, dog_speed):
+                        driving_offset, collecting_offset, noise_weight, dog_speed, dog_velocity):
     # check if dog is too close to the sheep
     distances_to_sheep = vecnorm_rows(sheep_positions - dog_position)
     if np.min(distances_to_sheep) <= sheep_repulsion_radius:
         # dog is too close, need to slow down
         braking_factor = 0.05  # greatly reduce the speed for the next step to not run into the sheep and scatter them
         # instead of moving forward, move slowly to another direction
-        new_direction = unit_vector(np.random.randn(2))
+        new_direction = unit_vector(dog_velocity+noise_weight*random_unit_vector())
         new_position = dog_position + braking_factor * dog_speed * new_direction
         return new_position, braking_factor*dog_speed*new_direction, "slow"
 
@@ -252,6 +252,9 @@ def simulate_model(
         # print percentage progress
         sys.stdout.write(f"\r{(t + 1) / num_iterations * 100:6.2f} %")
 
+
+        temp_sheep_positions = np.copy(sheep_positions)
+        temp_sheep_velocities = np.copy(sheep_positions)
         # Sheep movement
         for i in range(num_sheep):
             new_velocity = update_sheep_velocity(
@@ -261,15 +264,19 @@ def simulate_model(
                 persistence_weight, sheep_repulsion_weight, dog_repulsion_weight,
                 attraction_weight, noise_weight, alignment_weight
             )
-            sheep_positions[i] += sheep_speed * new_velocity
-            sheep_velocities[i] = new_velocity
+            temp_sheep_positions[i] += sheep_speed * new_velocity
+            temp_sheep_velocities[i] = new_velocity
 
         # Dog movement
         dog_position, dog_velocity, mode = update_dog_movement(
             sheep_positions, dog_position, sheep_repulsion_radius,
             non_cohesive_distance, driving_offset, collecting_offset,
-            noise_weight, dog_speed
+            noise_weight, dog_speed, dog_velocity
         )
+
+        for i in range(num_sheep):
+            sheep_positions[i] = temp_sheep_positions[i]
+            sheep_velocities[i] = temp_sheep_velocities[i]
 
         current_speed = dog_speed
 
