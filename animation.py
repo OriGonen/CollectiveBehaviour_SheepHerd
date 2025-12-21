@@ -5,6 +5,7 @@ import csv
 
 FONT_SIZE = 30
 
+#TODO: could use the bounded box + overlay + margins as the size of the window
 
 class HerdingAnimation:
     def __init__(self, sheep_pos_log, dog_pos_log, sheep_vel_log, dog_vel_log,
@@ -120,15 +121,8 @@ class HerdingAnimation:
         return min(polarization, 1.0)
 
     def world_to_screen(self, pos):
-        """Convert world coordinates to screen coordinates in game area"""
+        """Convert world coordinates to screen coordinates in the game area"""
         vp_x_min, vp_x_max, vp_y_min, vp_y_max = self.global_bounds
-
-        # Clip to bounds
-        pos = np.clip(pos, [vp_x_min, vp_y_min], [vp_x_max, vp_y_max])
-
-        # Convert to game area coordinates
-        bounds_width = vp_x_max - vp_x_min
-        bounds_height = vp_y_max - vp_y_min
 
         sx = self.game_offset_x + (pos[0] - vp_x_min) * self.game_scale_x
         sy = self.game_offset_y + (pos[1] - vp_y_min) * self.game_scale_y
@@ -158,7 +152,7 @@ class HerdingAnimation:
         )
 
     def render_bounds(self, screen):
-        """Render simulation bounds in game area"""
+        """Render simulation bounds in the game area"""
         vp_x_min, vp_x_max, vp_y_min, vp_y_max = self.global_bounds
 
         corners = [
@@ -306,7 +300,7 @@ class HerdingAnimation:
 
     def render_game_area(self, screen, sheep_pos, sheep_vel, dog_pos, dog_vel):
         """Render game area with bounds and entities"""
-        # Draw background for game area
+        # Draw background for the game area
         game_rect = pygame.Rect(self.game_area_x, self.game_area_y,
                                 self.game_area_width, self.game_area_height)
         pygame.draw.rect(screen, self.bg_color, game_rect)
