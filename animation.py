@@ -289,10 +289,6 @@ class HerdingAnimation:
             dog_speed = self.dog_speeds_log[self.frame] if self.dog_speeds_log is not None else 0
             metrics_texts = [
                 "",
-                "",
-                "",
-                "",
-                "",
                 f"Cohesion: {self.cohesion_log[self.frame]:.3f}",
                 f"Polar: {self.polarization_log[self.frame]:.3f}",
                 f"Dog Spd: {dog_speed:.2f}"
@@ -300,7 +296,7 @@ class HerdingAnimation:
 
             for text in metrics_texts:
                 if text == "":
-                    y_offset += 6
+                    y_offset += 20
                 else:
                     surf = font.render(text, True, self.text_color)
                     overlay_surface.blit(surf, (10, y_offset))
