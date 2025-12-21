@@ -3,9 +3,11 @@ import numpy as np
 from pathlib import Path
 import csv
 
+from Metrics.metrics import calculate_cohesion, calculate_polarization
+
 FONT_SIZE = 30
 
-#TODO: could use the bounded box + overlay + margins as the size of the window
+# TODO: Decide if we want scaling or just better calculation of the game window
 
 class HerdingAnimation:
     def __init__(self, sheep_pos_log, dog_pos_log, sheep_vel_log, dog_vel_log,
@@ -40,8 +42,8 @@ class HerdingAnimation:
             self.cohesion_log = np.zeros(self.num_frames)
             self.polarization_log = np.zeros(self.num_frames)
             for t in range(self.num_frames):
-                self.cohesion_log[t] = self._calculate_cohesion(sheep_pos_log[t])
-                self.polarization_log[t] = self._calculate_polarization(sheep_vel_log[t])
+                self.cohesion_log[t] = calculate_cohesion(sheep_pos_log[t])
+                self.polarization_log[t] = calculate_polarization(sheep_vel_log[t])
 
         # State - discrete frame handling
         self.frame = 0
@@ -99,26 +101,6 @@ class HerdingAnimation:
         self.game_offset_y = self.game_area_y + (self.game_area_height - game_height) / 2
         self.game_scale_x = game_width / bounds_width
         self.game_scale_y = game_height / bounds_height
-
-    def _calculate_cohesion(self, sheep_pos):
-        """Calculate flock cohesion (average distance from center)"""
-        center = np.mean(sheep_pos, axis=0)
-        distances = np.linalg.norm(sheep_pos - center, axis=1)
-        return np.mean(distances)
-
-    def _calculate_polarization(self, sheep_vel):
-        """Calculate flock polarization (alignment)"""
-        if np.allclose(sheep_vel, 0):
-            return 0.0
-
-        avg_velocity = np.mean(sheep_vel, axis=0)
-        magnitudes = np.linalg.norm(sheep_vel, axis=1)
-
-        if np.sum(magnitudes) == 0:
-            return 0.0
-
-        polarization = np.linalg.norm(avg_velocity) / np.sum(magnitudes)
-        return min(polarization, 1.0)
 
     def world_to_screen(self, pos):
         """Convert world coordinates to screen coordinates in the game area"""

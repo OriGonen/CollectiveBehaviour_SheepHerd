@@ -2,18 +2,6 @@ import numpy as np
 
 # Metrics calculations are sourced from the paper: Quantification of collective behavior (page 8).
 
-def calculate_barycenter(sheep_positions):
-    """Calculate group centroid (barycenter).
-
-    Args:
-        sheep_positions: (num_sheep, 2) array of sheep positions
-
-    Returns:
-        (2,) array representing barycenter position
-    """
-    return np.mean(sheep_positions, axis=0)
-
-
 def calculate_cohesion(sheep_positions):
     """Calculate cohesion as mean distance from each sheep to barycenter.
 
@@ -27,10 +15,8 @@ def calculate_cohesion(sheep_positions):
     Returns:
         float - cohesion value (mean radius of group)
     """
-    barycenter = calculate_barycenter(sheep_positions)
-    distances = np.linalg.norm(
-        sheep_positions - barycenter, axis=1
-    )
+    barycenter = np.mean(sheep_positions, axis=0)
+    distances = np.linalg.norm(sheep_positions - barycenter, axis=1)
     return np.mean(distances)
 
 
@@ -45,9 +31,11 @@ def calculate_polarization(sheep_velocities):
     Returns:
         float - polarization value (0 to 1, where 1 is fully aligned)
     """
+    if np.allclose(sheep_velocities, 0):
+        return 0.0
+
     normalized_vels = sheep_velocities / (
-            np.linalg.norm(sheep_velocities, axis=1, keepdims=True) + 1e-8
-    )
+            np.linalg.norm(sheep_velocities, axis=1, keepdims=True) + 1e-8)
     avg_direction = np.mean(normalized_vels, axis=0)
     return np.linalg.norm(avg_direction)
 
@@ -80,7 +68,7 @@ def calculate_elongation(sheep_positions, sheep_velocities, barycenter=None):
         ValueError: if velocities are zero/invalid or width is zero
     """
     if barycenter is None:
-        barycenter = calculate_barycenter(sheep_positions)
+        barycenter = np.mean(sheep_positions, axis=0)
 
     barycenter_velocity = np.mean(sheep_velocities, axis=0)
 
