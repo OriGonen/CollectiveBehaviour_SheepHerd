@@ -47,3 +47,5 @@ Visually we can check and see that both algorithms produce the same results.
 ### Correlation check
 
 `compare_implementations.py` calculates the correlation between the two runs.
+
+## Method 2: Cohesion, elongation and polarization distribution comparison

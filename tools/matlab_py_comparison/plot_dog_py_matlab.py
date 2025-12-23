@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from movement_algorithms.vivek_model import herding_model
 from utils.utils import load_matlab_herding_data, transform_matlab_all_runs, extract_initial_conditions
 
-matlab_file = "../../data/hm_1_14_det.mat"
+matlab_file = "../../data/hm_1_14_new.mat"
 
 print("Loading Matlab data...")
 data = load_matlab_herding_data(matlab_file)
@@ -43,25 +43,7 @@ for run_idx in range(num_runs):
     print("Running Python model with extracted initial conditions...")
     pos_s_python, pos_d_python, vel_s_python, vel_d_python, spd_d_python, \
         collect_python, drive_python, force_slow_python = herding_model(
-        no_shp=params['no_shp'],
-        box_length=params['box_length'],
-        rad_rep_s=params['red_rep_s'],
-        rad_rep_dog=params['rad_rep_dog'],
-        K_atr=params['K_atr'],
-        k_atr=params['k_atr'],
-        k_alg=params['k_alg'],
-        vs=params['vs'],
-        v_dog=params['v_dog'],
-        h=params['h'],
-        rho_a=params['rho_a'],
-        rho_d=params['rho_d'],
-        e=params['e'],
-        c=params['c'],
-        alg_str=params['alg_str'],
-        f_n=params['f_n'],
-        pd=params['pd'],
-        pc=params['pc'],
-        n_iter=params['n_iter'],
+        **params,
         initial_pos_s=initial_pos_s,
         initial_pos_d=initial_pos_d,
         initial_vel_s=initial_vel_s,
