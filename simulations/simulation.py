@@ -1,4 +1,4 @@
-from Movement_Algorithms.vivek_model import herding_model
+from movement_algorithms.vivek_model import herding_model
 
 import numpy as np
 

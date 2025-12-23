@@ -4,7 +4,32 @@ import numpy as np
 def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                   k_alg, vs, v_dog, h, rho_a, rho_d, e, c, alg_str, f_n,
                   pd, pc, n_iter):
+    """
 
+    Args:
+        no_shp: Number of sheep (N)
+        box_length: Box length
+        rad_rep_s: Radius of sheep repulsion (d_Rep)
+        rad_rep_dog: Radius of dog repulsion (R_D)
+        K_atr: K neighbors that the sheep perceives (k)
+        k_atr: k neighbors used for attraction (n_Att, where k_atr <= K_atr?)
+        k_alg: k neighbors of alignment (n_Ali)
+        vs: Speed of sheep (v_s)
+        v_dog: Speed of dog (v_d)
+        h: Relative strength of proceeding in the previous direction (inertia) (alpha)
+        rho_a: Relative strength of repulsion from neighbors (w_Rep)
+        rho_d: Relative strength of repulsion from dog (w_Dog)
+        e: Relative strength of angular noise (epsilon)
+        c: Relative strength of attraction (w_Att)
+        alg_str: Alignment strength (w_Ali)
+        f_n: Maximum distance of a sheep from the flock, where it's still considered cohesive(l_Sep)
+        pd: Driving position (for calculating l_drive, the distance from Barycenter to P_drive)
+        pc: Collecting position (for calculating l_drive, the distance from Barycenter to P_collect)
+        n_iter: Number of time steps (iterations)
+
+    Returns:
+
+    """
     # Initialization
     theta_pos = 2 * np.pi * np.random.rand()
     str_side = box_length * np.array([np.cos(theta_pos), np.sin(theta_pos)])
@@ -151,6 +176,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                 collect_t[t] = 1
             else:
                 # Driving behavior
+                # FIXME: The OG code does not take into account a fucking TARGET LMAO WHAT??????????????????
                 d_behind = np.linalg.norm(grp_centre) + pd
                 r_drive = d_behind * (grp_centre / np.linalg.norm(grp_centre))
                 r_drive_orient = r_drive - pos_d_t_1

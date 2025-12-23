@@ -1,4 +1,4 @@
-from Movement_Algorithms.Stormbom_movement_functions import simulate_model_strombom_main
+from movement_algorithms.Stormbom_movement_functions import simulate_model_strombom_main
 
 from animation import HerdingAnimation
 
