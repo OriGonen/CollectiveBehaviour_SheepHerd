@@ -15,4 +15,5 @@ __pycache__/
 .venv
 
 exports
-data
+data/*
+!data/hm_1_14_det.mat
