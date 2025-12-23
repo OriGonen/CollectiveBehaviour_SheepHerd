@@ -53,10 +53,6 @@ class HerdingAnimation:
         self.render_mode = 0
         self.modes = ["Dots", "Dots + Arrows"]
 
-        # Export paths
-        self.export_dir = Path("exports")
-        self.export_dir.mkdir(exist_ok=True)
-
         # Colors
         self.sheep_color = (0, 0, 255)
         self.dog_color = (255, 0, 0)
