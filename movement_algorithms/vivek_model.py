@@ -3,43 +3,26 @@ import numpy as np
 
 def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                   k_alg, vs, v_dog, h, rho_a, rho_d, e, c, alg_str, f_n,
-                  pd, pc, n_iter):
-    """
+                  pd, pc, n_iter, initial_pos_s=None, initial_pos_d=None,
+                  initial_vel_s=None, initial_vel_d=None):
+    if initial_pos_s is None or initial_pos_d is None:
+        theta_pos = 2 * np.pi * np.random.rand()
+        str_side = box_length * np.array([np.cos(theta_pos), np.sin(theta_pos)])
+        pos_s = str_side - 3 * rad_rep_s * np.random.rand(no_shp, 2)
+        pos_d = str_side - 3 * rad_rep_dog * np.random.rand(2)
+    else:
+        pos_s = initial_pos_s.copy()
+        pos_d = initial_pos_d.copy()
 
-    Args:
-        no_shp: Number of sheep (N)
-        box_length: Box length
-        rad_rep_s: Radius of sheep repulsion (d_Rep)
-        rad_rep_dog: Radius of dog repulsion (R_D)
-        K_atr: K neighbors that the sheep perceives (k)
-        k_atr: k neighbors used for attraction (n_Att, where k_atr <= K_atr?)
-        k_alg: k neighbors of alignment (n_Ali)
-        vs: Speed of sheep (v_s)
-        v_dog: Speed of dog (v_d)
-        h: Relative strength of proceeding in the previous direction (inertia) (alpha)
-        rho_a: Relative strength of repulsion from neighbors (w_Rep)
-        rho_d: Relative strength of repulsion from dog (w_Dog)
-        e: Relative strength of angular noise (epsilon)
-        c: Relative strength of attraction (w_Att)
-        alg_str: Alignment strength (w_Ali)
-        f_n: Maximum distance of a sheep from the flock, where it's still considered cohesive(l_Sep)
-        pd: Driving position (for calculating l_drive, the distance from Barycenter to P_drive)
-        pc: Collecting position (for calculating l_drive, the distance from Barycenter to P_collect)
-        n_iter: Number of time steps (iterations)
+    if initial_vel_s is None or initial_vel_d is None:
+        theta_s = 2 * np.pi * np.random.rand(no_shp)
+        theta_d = 2 * np.pi * np.random.rand()
+        vel_s = np.column_stack([np.cos(theta_s), np.sin(theta_s)])
+        vel_d = np.array([np.cos(theta_d), np.sin(theta_d)])
+    else:
+        vel_s = initial_vel_s.copy()
+        vel_d = initial_vel_d.copy()
 
-    Returns:
-
-    """
-    # Initialization
-    theta_pos = 2 * np.pi * np.random.rand()
-    str_side = box_length * np.array([np.cos(theta_pos), np.sin(theta_pos)])
-    pos_s = str_side - 3 * rad_rep_s * np.random.rand(no_shp, 2)
-    pos_d = str_side - 3 * rad_rep_dog * np.random.rand(2)
-
-    theta_s = 2 * np.pi * np.random.rand(no_shp)
-    theta_d = 2 * np.pi * np.random.rand()
-    vel_s = np.column_stack([np.cos(theta_s), np.sin(theta_s)])
-    vel_d = np.array([np.cos(theta_d), np.sin(theta_d)])
     spd_s = np.ones(no_shp) * vs
 
     # Storage arrays: (n_iter, no_shp, 2) for easier time-stepping
