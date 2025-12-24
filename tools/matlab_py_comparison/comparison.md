@@ -50,7 +50,7 @@ Visually we can check and see that both algorithms produce the same results.
 
 ### Results
 
-![dog_trajectories_all_runs.png](dog_traj_matlab_py.png)
+![dog_trajectories_all_runs.png](../../res/dog_traj_matlab_py.png)
 
 The deterministic paths overlap.
 
