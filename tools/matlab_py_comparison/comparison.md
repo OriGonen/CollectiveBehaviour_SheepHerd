@@ -48,4 +48,9 @@ Visually we can check and see that both algorithms produce the same results.
 
 `compare_implementations.py` calculates the correlation between the two runs.
 
+### Results
+
+![dog_trajectories_all_runs.png](dog_traj_matlab_py.png)
+
+The deterministic results are 
 ## Method 2: Cohesion, elongation and polarization distribution comparison
