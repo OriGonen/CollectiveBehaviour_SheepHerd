@@ -52,5 +52,6 @@ Visually we can check and see that both algorithms produce the same results.
 
 ![dog_trajectories_all_runs.png](dog_traj_matlab_py.png)
 
-The deterministic results are 
+The deterministic paths overlap.
+
 ## Method 2: Cohesion, elongation and polarization distribution comparison
