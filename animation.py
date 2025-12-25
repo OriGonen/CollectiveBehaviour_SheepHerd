@@ -1,9 +1,8 @@
 import pygame
 import numpy as np
-from pathlib import Path
 import csv
 
-from metrics.metrics import calculate_cohesion, calculate_polarization
+from utils.metrics import calculate_cohesion, calculate_polarization
 
 FONT_SIZE = 30
 

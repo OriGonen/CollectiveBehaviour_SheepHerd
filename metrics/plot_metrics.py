@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from metrics import analyze_simulation_metrics
+from utils.metrics import analyze_simulation_metrics
 
 
 def plot_metrics(
