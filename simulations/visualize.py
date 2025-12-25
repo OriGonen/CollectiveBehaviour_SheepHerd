@@ -4,11 +4,6 @@ import numpy as np
 
 from animation import HerdingAnimation
 
-# TODO:
-# - Add animation with barycenter arrows + individuals
-# - Add animation with "trail"
-# - Test UI
-
 if __name__ == "__main__":
     num_sheep = 14
 

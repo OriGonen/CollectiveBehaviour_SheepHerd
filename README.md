@@ -63,5 +63,5 @@ pip install -r requirements.txt
 Run the simulation:
 
 ```bash
-python simulation.py
+python visualize.py
 ```
