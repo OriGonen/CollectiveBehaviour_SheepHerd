@@ -20,7 +20,7 @@ def load_matlab_herding_data(matlab_file):
         'params': {
             'no_shp': int(data['no_shp'][0, 0]),
             'n_iter': int(data['n_iter'][0, 0]),
-            #'no_it': int(data['no_it'][0, 0]),
+            # 'no_it': int(data['no_it'][0, 0]),
             'box_length': float(data['box_length'][0, 0]),
             'rad_rep_s': float(data['red_rep_s'][0, 0]),
             'rad_rep_dog': float(data['rad_rep_dog'][0, 0]),
@@ -41,10 +41,12 @@ def load_matlab_herding_data(matlab_file):
         }
     }
 
+
 def arr1d_to_scalar(arr):
     if arr.ndim != 1:
         arr = arr.reshape(-1)
     return arr
+
 
 def transform_matlab_single_run(pos_s, pos_d, vel_s, vel_d, spd_d, run_idx=0):
     if pos_s.ndim == 4:
