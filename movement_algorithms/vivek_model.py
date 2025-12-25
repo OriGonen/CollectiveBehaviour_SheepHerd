@@ -1,6 +1,11 @@
 import numpy as np
 # Implementation of the Vivek et al. herding model
 
+# Observations:
+#  - The Target is set to (0,0) this is why there is no r_T in the dog position calculation
+#  - The original code makes a mistake in line 113: `r_alg = sum(r_alg);` where they do not calculate the sum vector,
+#    but the sum of all values, resulting in a scalar. The correct code would be `r_alg = sum(r_alg, 1);`
+
 def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                   k_alg, vs, v_dog, h, rho_a, rho_d, e, c, alg_str, f_n,
                   pd, pc, n_iter, initial_pos_s=None, initial_pos_d=None,
@@ -159,7 +164,6 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                 collect_t[t] = 1
             else:
                 # Driving behavior
-                # FIXME: The OG code does not take into account a fucking TARGET LMAO WHAT??????????????????
                 d_behind = np.linalg.norm(grp_centre) + pd
                 r_drive = d_behind * (grp_centre / np.linalg.norm(grp_centre))
                 r_drive_orient = r_drive - pos_d_t_1
