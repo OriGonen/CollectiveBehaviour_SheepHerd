@@ -1,6 +1,6 @@
 import numpy as np
 
-# metrics calculations are sourced from the paper: Quantification of collective behavior (page 8).
+# Metrics calculations are sourced from the paper: Quantification of collective behavior (page 8).
 
 def calculate_cohesion(sheep_positions):
     """Calculate cohesion as mean distance from each sheep to barycenter.
