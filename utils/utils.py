@@ -24,7 +24,7 @@ def load_matlab_herding_data(matlab_file):
             'box_length': float(data['box_length'][0, 0]),
             'rad_rep_s': float(data['red_rep_s'][0, 0]),
             'rad_rep_dog': float(data['rad_rep_dog'][0, 0]),
-            'K_atr': int(data['k_atr'][0, 0]),
+            'K_atr': int(data['K_atr'][0, 0]),
             'k_atr': int(data['k_atr'][0, 0]),
             'k_alg': int(data['k_alg'][0, 0]),
             'vs': float(data['vs'][0, 0]),
