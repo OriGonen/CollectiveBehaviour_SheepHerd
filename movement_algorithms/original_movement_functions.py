@@ -2,6 +2,7 @@ import sys
 
 import numpy as np
 
+# TODO: compare for same input
 
 # utility
 def unit_vector(v):
@@ -36,17 +37,18 @@ The drives of the sheep:
 5. Random noise to the movement
 '''
 
-
-# Repulsion from other sheep
 def sheep_repulsion_sheep(sheep_index, all_sheep_pos, sheep_repulsion_radius):
-    # returns a unit vector away from nearby sheep or zero vector if none are nearby
+    # Returns a unit vector away from nearby sheep or zero vector if none are nearby
     relative_positions = all_sheep_pos - all_sheep_pos[sheep_index]
+
+    # TODO: Why is this not a direction call (why are we using the wrapper?)
     distances = vecnorm_rows(relative_positions)
     nearby_sheep_indices = np.where(distances < sheep_repulsion_radius)[0]
     nearby_sheep_indices = nearby_sheep_indices[nearby_sheep_indices != sheep_index]
 
-    if len(nearby_sheep_indices) > 0:
+    if len(nearby_sheep_indices) >= 1:
         repulsion_vectors = relative_positions[nearby_sheep_indices] / distances[nearby_sheep_indices][:, None]
+        # TODO: Why not just calculate it directly?
         total_repulsion = -unit_vector(np.sum(repulsion_vectors, axis=0))
         return total_repulsion
 
@@ -73,6 +75,7 @@ def sheep_attraction_center(sheep_index, all_sheep_pos, num_neighbors_for_attrac
 
 
 # Velocity direction alignment to average of neighbors
+# FIXME: we end up using different random neighbors here, the OG Code does not do this
 def sheep_alignment(sheep_velocities, neighbor_indices, num_alignment_neighbors):
     # align velocity in accordance to random neighbors
     chosen_neighbors = np.random.choice(neighbor_indices, num_alignment_neighbors, replace=False)
@@ -89,33 +92,54 @@ def update_sheep_velocity(
 ):
     direction_to_dog = dog_position - sheep_positions[sheep_index]
     distance_to_dog = np.linalg.norm(direction_to_dog)
+    # TODO: check if > 0 is needed
     direction_to_dog /= distance_to_dog if distance_to_dog > 0 else 1
 
+    # Calculate the repulsion vectors, of the repulsion between the sheep
     repulsion_vector = sheep_repulsion_sheep(sheep_index, sheep_positions, sheep_repulsion_radius)
 
-    # case: the dog is far away
-    # in this case, the sheep do not align and do not attract towards the center
+    # The sheep is beyond interaction radius with dog
     if distance_to_dog > dog_repulsion_radius:
+        # TODO: Is persistence_weight actually equal to h in OG code?
+        # In case of no sheep in the repulsion vector, we actually return a zero vector so the resulting new
+        #  velocity should also be a zero vector
+        # OG code would also save the data here
+        # OG code would return the same positions as before (sheep did not move)
+        # WE dont actually calculate the position of the sheep here
         new_velocity = persistence_weight * sheep_velocities[sheep_index] + sheep_repulsion_weight * repulsion_vector
         new_velocity = unit_vector(new_velocity)
         return new_velocity
 
-    # else, the dog is nearby and is affecting the sheep
+    # The dog is seen by the sheep
+    # TODO: why does the original code consider sheep existing in the vicinity of each other here as an error?
+
+    # Repulsion from dog
     dog_avoidance_vector = -direction_to_dog
+
+    # Attraction towards LCM
     attraction_vector = sheep_attraction_center(sheep_index, sheep_positions,
                                                 num_neighbors_for_attraction, num_random_neighbors)
 
+    # TODO: we calculate this same thing like 5 times
+
     sheep_relative_positions = sheep_positions - sheep_positions[sheep_index]
     sheep_distances = vecnorm_rows(sheep_relative_positions)
+
+    # TODO: Do we not calculate this in the previous function call? And now again we do the same?
     sorted_neighbor_indices = np.argsort(sheep_distances)
     # start from 1 to exclude self
+    # I think they actually use the sorted ones here, this could be a potential error
     attraction_neighbors = sorted_neighbor_indices[1:num_neighbors_for_attraction + 1]
     alignment_vector = sheep_alignment(sheep_velocities, attraction_neighbors, num_alignment_neighbors)
 
     # add random noise
+    # TODO: We do this same thing during init, but now we call a function that wraps it??
     noise_vector = random_unit_vector()
 
-    # now, combine all vectors
+    # FIXME: OG code calculated differently depending on if >0 sheep around when dog around
+    #   They dont add the rho_a * r_ij_rep which is just the repulsion vector and weight, right?
+    #   ---> In our case this is either a zero vector or actual values, we can just directly use it for calculation
+
     updated_velocity = (persistence_weight * sheep_velocities[sheep_index]
                         + sheep_repulsion_weight * repulsion_vector
                         + dog_repulsion_weight * dog_avoidance_vector
@@ -175,13 +199,22 @@ def dog_driving_mode(sheep_positions, dog_position, group_center, noise_weight, 
 def update_dog_movement(sheep_positions, dog_position, sheep_repulsion_radius, non_cohesive_distance,
                         driving_offset, collecting_offset, noise_weight, dog_speed):
     # check if dog is too close to the sheep
+    # FIXME: now we calculate the distance vectors directly, lmao keep this everywhere!
     distances_to_sheep = vecnorm_rows(sheep_positions - dog_position)
+
     if np.min(distances_to_sheep) <= sheep_repulsion_radius:
         # dog is too close, need to slow down
         braking_factor = 0.05  # greatly reduce the speed for the next step to not run into the sheep and scatter them
         # instead of moving forward, move slowly to another direction
+
         new_direction = unit_vector(np.random.randn(2))
+        # TODO: braking_factor * dog_speed? shouldn't this be dog_velocity??
+        # FIXME: YEA BRING THE VELOCITIES HERE BRAH
         new_position = dog_position + braking_factor * dog_speed * new_direction
+
+        # TODO: we would save that we are breaking here, and the new speeds, velocities, etc.
+
+        # Also the current speed is not propagating correctly at all
         return new_position, braking_factor*dog_speed*new_direction, "slow"
 
     # else, there's no need to brake and the dog moves in accordance to cohesiveness of the herd
@@ -197,15 +230,17 @@ def update_dog_movement(sheep_positions, dog_position, sheep_repulsion_radius, n
     else:
         # the group is cohesive - the dog can drive the herd
         return dog_driving_mode(sheep_positions, dog_position, group_center, noise_weight, dog_speed, driving_offset)
-
+    # TODO: Code would save the data here, check if done correctly, if it propagates correctly
 
 
 '''
-    ----------------------------
-        simulation function
-    ----------------------------
-    the simulation function utilizes the movement functions to simulate the behaviour of the sheep and dog
-    the function will return arrays for positions, velocities, and dog-modes for each timestep.
+    Main function for the model described in
+     "Collective responses of flocking sheep (Ovis aries) to a herding dog (border collie)"
+    
+    This is a reimplementation of the Matlab code, provided by the authors.
+    
+    Positions of individuals change at equispaced time instants: Delta(t) = 1s.
+    
 '''
 
 
@@ -221,11 +256,16 @@ def simulate_model(
     # --- Initialization ---
     random_angle = 2 * np.pi * np.random.rand()
     start_side = box_length * np.array([np.cos(random_angle), np.sin(random_angle)])
+
+    # Position the sheep in the top right corner
     sheep_positions = start_side - 3 * sheep_repulsion_radius * np.random.rand(num_sheep, 2)
     dog_position = (start_side - 3 * dog_repulsion_radius * np.random.rand(1, 2)).flatten()
 
+    # Initial direction of the flock and dog
     sheep_angles = 2 * np.pi * np.random.rand(num_sheep)
     dog_angle = 2 * np.pi * np.random.rand()
+
+    # Initial sheep and dog velocities
     sheep_velocities = np.column_stack((np.cos(sheep_angles), np.sin(sheep_angles)))
     dog_velocity = np.array([np.cos(dog_angle), np.sin(dog_angle)])
 
@@ -246,25 +286,39 @@ def simulate_model(
     dog_velocities_log[0] = dog_velocity
     dog_speeds_log[0] = dog_speed
 
+    sheep_positions_old = sheep_positions.copy()
+    sheep_velocities_old = sheep_velocities.copy()
+
     # --- Simulation loop ---
     for t in range(1, num_iterations):
-
         # print percentage progress
         sys.stdout.write(f"\r{(t + 1) / num_iterations * 100:6.2f} %")
 
         # Sheep movement
         for i in range(num_sheep):
             new_velocity = update_sheep_velocity(
-                sheep_positions, sheep_velocities, dog_position, i,
+                sheep_positions_old, sheep_velocities_old, i,
+                sheep_positions, sheep_velocities,
+                dog_position,
+                # Constants
                 sheep_repulsion_radius, dog_repulsion_radius,
                 num_neighbors_for_attraction, num_random_attraction_neighbors, num_alignment_neighbors,
                 persistence_weight, sheep_repulsion_weight, dog_repulsion_weight,
                 attraction_weight, noise_weight, alignment_weight
             )
+
+            # If the new_velocity return zero vectors, it means we just add +0
+            # FIXME: We are updating the current position of the sheep TOO SOON!!!!
+            sheep_positions_old[i] += sheep_speed * new_velocity
+            sheep_velocities_old[i] = new_velocity
+
             sheep_positions[i] += sheep_speed * new_velocity
+
+            # FIXME: The OG code would keep the same velocity here as before, we would add 0
             sheep_velocities[i] = new_velocity
 
         # Dog movement
+        # FIXME: I'm not even using the dog velocity
         dog_position, dog_velocity, mode = update_dog_movement(
             sheep_positions, dog_position, sheep_repulsion_radius,
             non_cohesive_distance, driving_offset, collecting_offset,
@@ -280,6 +334,8 @@ def simulate_model(
         elif mode == "slow":
             slowing_flags[t] = 1
             braking_factor = 0.05
+            # FIXME: This should just set the speed to 0.05, no multiplication or anything
+            # FIXME: When does the speed reset?
             current_speed = braking_factor * dog_speed  # braking if too close
 
         # Store time step data
@@ -288,6 +344,11 @@ def simulate_model(
         dog_positions_log[t] = dog_position
         dog_velocities_log[t] = dog_velocity
         dog_speeds_log[t] = current_speed
+
+        sheep_positions_old = sheep_positions
+        sheep_velocities_old = sheep_velocities
+
+    # The code also updates old data it used
 
     return (sheep_positions_log, dog_positions_log,
             sheep_velocities_log, dog_velocities_log,

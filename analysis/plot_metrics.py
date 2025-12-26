@@ -1,6 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from metrics import analyze_simulation_metrics
+import numpy as np
+
+from utils.metrics import analyze_simulation_metrics
 
 
 def plot_metrics(
@@ -13,7 +14,7 @@ def plot_metrics(
 
     fig, axes = plt.subplots(3, 1, figsize=(12, 10))
     fig.suptitle(
-        f"Flock Collective Behavior Metrics — {algorithm_name}",
+        f"Flock Collective Behavior metrics — {algorithm_name}",
         fontsize=16, fontweight="bold"
     )
 
@@ -80,7 +81,7 @@ def plot_metrics(
 
     plt.tight_layout()
     plt.savefig(save_path, dpi=300, bbox_inches="tight")
-    print(f"Metrics plot saved to {save_path}")
+    print(f"metrics plot saved to {save_path}")
     plt.show()
 
     # Print summary statistics
@@ -126,7 +127,7 @@ def plot_metrics_comparison(
 
     fig, axes = plt.subplots(3, 1, figsize=(14, 11))
     fig.suptitle(
-        "Flock Metrics",
+        "Flock metrics",
         fontsize=16, fontweight="bold"
     )
 
@@ -244,7 +245,7 @@ if __name__ == "__main__":
         print("RUNNING STROMBOM ALGORITHM".center(70))
         print("=" * 70 + "\n")
 
-        from Movement_Algorithms.Stormbom_movement_functions import (
+        from movement_algorithms.Stormbom_movement_functions import (
             simulate_model_strombom_main
         )
 
@@ -292,7 +293,7 @@ if __name__ == "__main__":
         print("RUNNING ORIGINAL ALGORITHM".center(70))
         print("=" * 70 + "\n")
 
-        from Movement_Algorithms.original_movement_functions import simulate_model
+        from movement_algorithms.original_movement_functions import simulate_model
 
         original_params = dict(
             num_sheep=30,

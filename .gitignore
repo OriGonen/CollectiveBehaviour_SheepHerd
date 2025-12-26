@@ -13,3 +13,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .venv
+
+exports
+data/*
+!data/hm_1_14_det.mat
