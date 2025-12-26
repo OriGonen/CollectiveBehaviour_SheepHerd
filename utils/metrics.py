@@ -1,9 +1,103 @@
 import numpy as np
 
+
 # Metrics calculations are sourced from the paper: Quantification of collective behavior (page 8).
 
+def calculate_cohesion_sim(sheep_positions_simulation):
+    """
+    Calculate cohesion for sheep flock simulations.
+
+    Cohesion is defined as the average distance of all sheep from the
+    flock's barycenter at each time step.
+
+    Mathematical definition:
+        C(t) = (1/N) * sum(||r_i(t) - R(t)||)
+        where R(t) = (1/N) * sum(r_i(t)) is the barycenter
+
+    Parameters:
+    -----------
+    sheep_positions_simulation : np.ndarray
+        Array of shape (no_it, n_iter, no_shp, 2) containing position vectors
+        where the last axis contains (x, y) coordinates.
+
+    Returns:
+    --------
+    np.ndarray
+        Cohesion values of shape (no_it, n_iter)
+    """
+    r_b = np.mean(sheep_positions_simulation, axis=2, keepdims=True)
+    distances = np.linalg.norm(sheep_positions_simulation - r_b, axis=3)
+
+    return np.mean(distances, axis=2)
+
+
+def calculate_polarization_sim(sheep_velocities_simulation):
+    """
+    Calculate polarization for sheep flock simulations.
+
+    Parameters:
+    -----------
+    sheep_velocities_simulation : np.ndarray
+        Array of shape (no_it, n_iter, no_shp, 2) containing velocity vectors
+        where the last axis contains (vx, vy) components.
+
+    Returns:
+    --------
+    np.ndarray
+        Polarization values of shape (no_it, n_iter)
+    """
+    vel_norms = np.linalg.norm(sheep_velocities_simulation, axis=3, keepdims=True)
+    mean_unit_velocity = np.mean(sheep_velocities_simulation / vel_norms, axis=2)
+    return np.linalg.norm(mean_unit_velocity, axis=2)
+
+
+def calculate_elongation_sim(sheep_positions_simulation, sheep_velocities_simulation):
+    """
+    Calculate elongation for sheep flock simulations.
+    Parameters:
+    -----------
+    sheep_positions_simulation : np.ndarray
+        Shape: (no_it, n_iter, no_shp, 2)
+    sheep_velocities_simulation : np.ndarray
+        Shape: (no_it, n_iter, no_shp, 2)
+
+    Returns:
+    --------
+    np.ndarray
+        Elongation values of shape (no_it, n_iter)
+    """
+    # Compute barycenter position and velocity
+    barycenter = np.mean(sheep_positions_simulation, axis=2, keepdims=True)
+    barycenter_vel = np.mean(sheep_velocities_simulation, axis=2, keepdims=True)
+
+    pos_rel = sheep_positions_simulation - barycenter
+
+    # Normalize barycenter velocity to get direction: v̂_B
+    vel_norms = np.linalg.norm(barycenter_vel, axis=3, keepdims=True)
+    vel_norms = np.where(vel_norms < 1e-10, 1.0, vel_norms)
+
+    v_hat = barycenter_vel / vel_norms
+
+    # Perpendicular direction: v̂_B⊥ (rotate 90° counterclockwise)
+    v_perp = np.stack([-v_hat[..., 1], v_hat[..., 0]], axis=-1)
+
+    # Project positions onto parallel and perpendicular axes
+    # ȳ_i = (r_i - r_B) · v̂_B
+    y_proj = np.sum(pos_rel * v_hat, axis=3)
+
+    # x̄_i = (r_i - r_B) · v̂_B⊥
+    x_proj = np.sum(pos_rel * v_perp, axis=3)
+
+    # Compute length and width
+    length = np.ptp(y_proj, axis=2)  # max - min along motion
+    width = np.ptp(x_proj, axis=2)  # max - min perpendicular
+
+    # Elongation = LENGTH / WIDTH
+    return np.where(width < 1e-10, np.nan, length / width)
+
+
 def calculate_cohesion(sheep_positions):
-    """Calculate cohesion as mean distance from each sheep to barycenter.
+    """Calculate cohesion as the mean distance from each sheep to barycenter.
 
     From the paper (page 8):
     C(t) = (1/N) * sum(||r_i(t) - r_B(t)||)
@@ -41,9 +135,9 @@ def calculate_polarization(sheep_velocities):
 
 
 def calculate_elongation(sheep_positions, sheep_velocities, barycenter=None):
-    """Calculate elongation as length/width ratio.
+    """Calculate elongation as a length/width ratio.
 
-    Define coordinate system in reference frame of barycenter motion:
+    Define a coordinate system in reference frame of barycenter motion:
       ŷ-axis: direction of flock motion (barycenter velocity)
       x̄-axis: perpendicular to motion
 
@@ -53,8 +147,8 @@ def calculate_elongation(sheep_positions, sheep_velocities, barycenter=None):
 
     Then:
       LENGTH = max(ȳ_i) - min(ȳ_i)
-      WIDTH  = max(x̄_i) - min(x̄_i)
-      E(t)   = LENGTH / WIDTH
+      WIDTH = max(x̄_i) - min(x̄_i)
+      E(t) = LENGTH / WIDTH
 
     Args:
         sheep_positions: (num_sheep, 2) array of positions
@@ -92,12 +186,12 @@ def calculate_elongation(sheep_positions, sheep_velocities, barycenter=None):
     elongation = length / width
     return elongation
 
+
 def analyze_simulation_metrics(sheep_pos_log, sheep_vel_log):
-    """Calculate all metrics over entire simulation.
+    """Calculate all metrics over the entire simulation.
 
     Args:
         sheep_pos_log: (num_frames, num_sheep, 2)
-        dog_pos_log: (num_frames, 2) - not used for metrics, here for compatibility
         sheep_vel_log: (num_frames, num_sheep, 2)
 
     Returns:

@@ -55,3 +55,22 @@ Visually we can check and see that both algorithms produce the same results.
 The deterministic paths overlap.
 
 ## Method 2: Cohesion, elongation and polarization distribution comparison
+
+Comparison is performed as follows:
+1. We run the provided Matlab simulation for 300 runs of the Vivek et.al model.
+2. We run the Python simulation for 300 runs with the same parameters.
+3. We plot the cohesion, elongation and polarization PDFs for both runs with `analysis/pdf.py`.
+4. Compare the results.
+
+### Results
+
+The general trend is the same for both models, though there are some differences.
+These differences arise from the implemented logic in the Matlab model, where during calculation of `r_ali`
+(vector of sheep alignment), the Matlab code does:
+
+``
+113:           r_alg = sum(r_alg);
+``
+
+In Matlab if `sum()` receives a 1D array, it returns a scalar, equal to the sum of all its elements.
+Since the parameter `k_ali=1` in this simulation, this results in a scalar value and not a vector.
