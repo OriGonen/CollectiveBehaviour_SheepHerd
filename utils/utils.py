@@ -13,7 +13,7 @@ def load_matlab_herding_data(filename):
     vel_d = data['vel_d']
     spd_d = data['spd_d']
 
-    results = {
+    return {
         'pos_s': pos_s,
         'pos_d': pos_d,
         'vel_s': vel_s,
@@ -43,8 +43,6 @@ def load_matlab_herding_data(filename):
         }
     }
 
-    return results
-
 
 def arr1d_to_scalar(arr):
     if arr.ndim != 1:
@@ -72,8 +70,16 @@ def transform_matlab_single_run(pos_s, pos_d, vel_s, vel_d, spd_d, run_idx=0):
     return pos_s_transformed, pos_d_transformed, vel_s_transformed, vel_d_transformed, spd_d_transformed
 
 
-def transform_matlab_all_runs(pos_s, pos_d, vel_s, vel_d, spd_d):
-    if pos_s.ndim == 3:
+def load_simulation_results_matlab(filename):
+    data = load_matlab_herding_data(filename)
+
+    pos_s = data['pos_s']
+    vel_s = data['vel_s']
+    pos_d = data['pos_d']
+    vel_d = data['vel_d']
+    spd_d = data['spd_d']
+
+    if data['pos_s'].ndim == 3:
         pos_s = pos_s[:, :, :, np.newaxis]
         vel_s = vel_s[:, :, :, np.newaxis]
         pos_d = pos_d[:, :, np.newaxis]
@@ -85,10 +91,17 @@ def transform_matlab_all_runs(pos_s, pos_d, vel_s, vel_d, spd_d):
     pos_d_all = np.transpose(pos_d, (2, 0, 1))
     vel_d_all = np.transpose(vel_d, (2, 0, 1))
     spd_d_all = []
+
     for r in range(spd_d.shape[1]):
         spd_d_all.append(arr1d_to_scalar(spd_d[:, r]))
 
-    return pos_s_all, pos_d_all, vel_s_all, vel_d_all, spd_d_all
+    data['vel_s'] = vel_s_all
+    data['pos_s'] = pos_s_all
+    data['vel_d'] = vel_d_all
+    data['spd_d'] = spd_d_all
+    data['pos_d'] = pos_d_all
+
+    return data
 
 
 def extract_initial_conditions(pos_s, pos_d):

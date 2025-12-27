@@ -1,26 +1,25 @@
 import matplotlib.pyplot as plt
+
 from movement_algorithms.vivek_model import herding_model
-from utils.utils import load_matlab_herding_data, transform_matlab_all_runs, extract_initial_conditions
+from utils.utils import load_simulation_results_matlab, extract_initial_conditions
 
 matlab_file = "../../data/hm_1_14_new.mat"
 
 print("Loading Matlab data...")
-data = load_matlab_herding_data(matlab_file)
+
+data = load_simulation_results_matlab(matlab_file)
 params = data['params']
 
-pos_s_matlab_all, pos_d_matlab_all, vel_s_matlab_all, vel_d_matlab_all, spd_d_matlab_all = \
-    transform_matlab_all_runs(
-        data['pos_s'],
-        data['pos_d'],
-        data['vel_s'],
-        data['vel_d'],
-        data['spd_d']
-    )
-
-num_runs = pos_s_matlab_all.shape[0]
+num_runs = data['no_runs']
 print(f"Detected {num_runs} simulation run(s)")
 print(f"Number of timesteps: {params['n_iter']}")
 print(f"Number of sheep: {params['no_shp']}")
+
+pos_s_matlab_all = data['pos_s']
+pos_d_matlab_all = data['pos_d']
+vel_s_matlab_all = data['vel_s']
+vel_d_matlab_all = data['vel_d']
+spd_d_matlab_all = data['spd_d']
 
 all_sheep_stats = []
 all_dog_stats = []
