@@ -2,7 +2,7 @@
 
 ## Objective
 
-Our main goal is to extend and work on the Vivek et.al herding model.
+Our main goal is to extend and work on the Jadhav et.al herding model.
 Since the model is written in Matlab, and ours is written in Python, we need to compare the two.
 
 *NOTE*: When working with `.mat` data, make sure to add `'-v7'` flag  in `save()` call so the data can be loaded in Python.
@@ -33,7 +33,7 @@ The simulation is then run repeatedly to make sure the model is now deterministi
 
 The results from the Matlab run are loaded with `utils.py` and
 the starting parameters as well as starting position is then extracted and
-the `vivek_model.py` herding model is run with the same parameters.
+the `jadhav_model.py` herding model is run with the same parameters.
 
 The following changes are made to the Python model to make it deterministic:
 - All noise is removed, i.e.,`e*r_err` is removed from the sheep and dog position calculations.
@@ -57,7 +57,7 @@ The deterministic paths overlap.
 ## Method 2: Cohesion, elongation and polarization distribution comparison
 
 Comparison is performed as follows:
-1. We run the provided Matlab simulation for 300 runs of the Vivek et.al model.
+1. We run the provided Matlab simulation for 300 runs of the Jadhav et.al model.
 2. We run the Python simulation for 300 runs with the same parameters.
 3. We plot the cohesion, elongation and polarization PDFs for both runs with `analysis/pdf.py`.
 4. Compare the results.

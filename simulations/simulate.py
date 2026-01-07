@@ -9,7 +9,7 @@ if __name__ == "__main__":
     n_iter = 370
     num_sheep = 14
 
-    filename = f'vivek_{num_sheep}_{n_runs}_{n_iter}'
+    filename = f'jadhav_{num_sheep}_{n_runs}_{n_iter}'
     rad_rep_s = 2
     params = dict(
         no_shp=num_sheep,

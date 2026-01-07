@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.io import loadmat
 
-from movement_algorithms.vivek_model import herding_model
+from movement_algorithms.jadhav_model import herding_model
 
 
 def load_matlab_herding_data(filename):
