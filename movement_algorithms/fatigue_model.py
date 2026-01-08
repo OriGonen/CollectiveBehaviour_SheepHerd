@@ -1,11 +1,21 @@
 import numpy as np
 # Implementation of the fatigue sheepherding model FSM
 
-# TODO: should clip(0,1) even be used? Why yes?
+# TODO: Do we need TL_Drive and TL_gather? Why are they just equal at all time?
+# TODO: Should TL be calculated instead of just using min/max?
+# TODO: How well do we track through time, since deltaT=1 for us?
 
 def rc_g_func(M_A, M_F, M_R, TL, epsilon_v):
     RC = M_R + M_A
     return epsilon_v + (1 - epsilon_v) * RC
+
+def dt_g_func(M_A, M_F, M_R, TL, epsilon_v):
+    # FIXME: currently this one returns 0 if no danger aka we dont even move away.
+    #       Is this correct? I think so TL is zero iff dog is away from animal -> dont move?
+    if TL <= 0:
+        return 0.0
+    return np.clip(M_A / (TL + epsilon_v), 0.0, 1.0)
+
 
 def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                            k_alg, vs, v_dog, h, rho_a, rho_d, e, c, alg_str, f_n,
@@ -121,6 +131,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
     for t in range(1, n_iter):
         # Update fatigue states for sheep
         for i in range(no_shp):
+            # FIXME: Maybe flip the - just to be the same as below
             dist_iD = np.linalg.norm(pos_s_t_1[i, :] - pos_d_t_1)
             if dist_iD >= rad_rep_dog:
                 TL_i = 0.0
@@ -143,6 +154,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
             M_F_s[i] = np.clip(M_F_next, 0, 1)
             M_R_s[i] = 1 - M_A_s[i] - M_F_s[i]
             # Clipping M_R and re-adjusting is handled by taking it from simplex
+            # FIXME: This should not be needed
             if M_R_s[i] < 0:
                 M_R_s[i] = 0
                 # Re-normalize if needed, though clip(0,1) and M_R=1-A-F should mostly work
@@ -277,6 +289,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
         M_A_d = np.clip(M_A_next_d, 0, 1)
         M_F_d = np.clip(M_F_next_d, 0, 1)
         M_R_d = 1 - M_A_d - M_F_d
+        # FIXME: should not be needed
         if M_R_d < 0:
             M_R_d = 0
             total = M_A_d + M_F_d
