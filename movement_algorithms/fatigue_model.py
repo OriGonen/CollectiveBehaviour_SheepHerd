@@ -1,6 +1,8 @@
 import numpy as np
 # Implementation of the fatigue sheepherding model FSM
 
+# TODO: should clip(0,1) even be used? Why yes?
+
 def rc_g_func(M_A, M_F, M_R, TL, epsilon_v):
     RC = M_R + M_A
     return epsilon_v + (1 - epsilon_v) * RC
@@ -9,13 +11,16 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                            k_alg, vs, v_dog, h, rho_a, rho_d, e, c, alg_str, f_n,
                            pd, pc, n_iter, delta_t, F_i, R_i, TL_max, TL_chase,
                            L_D, L_R, epsilon_v, TL_gather, TL_drive, TL_idle,
-                           initial_pos_s=None, initial_pos_d=None,
-                           initial_vel_s=None, initial_vel_d=None,
-                           initial_M_A_s=None, initial_M_F_s=None,
-                           initial_M_A_d=None, initial_M_F_d=None,
+                           initial_state=None,
                            g_func=None):
+    if initial_state is None:
+        initial_state = {}
+
     if g_func is None:
         g_func = rc_g_func
+
+    initial_pos_s = initial_state.get('pos_s')
+    initial_pos_d = initial_state.get('pos_d')
 
     if initial_pos_s is None or initial_pos_d is None:
         theta_pos = 2 * np.pi * np.random.rand()
@@ -25,6 +30,9 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
     else:
         pos_s = initial_pos_s.copy()
         pos_d = initial_pos_d.copy()
+
+    initial_vel_s = initial_state.get('vel_s')
+    initial_vel_d = initial_state.get('vel_d')
 
     if initial_vel_s is None or initial_vel_d is None:
         theta_s = 2 * np.pi * np.random.rand(no_shp)
@@ -36,11 +44,13 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
         vel_d = initial_vel_d.copy()
 
     # Initial fatigue states
+    initial_M_A_s = initial_state.get('M_A_s')
     if initial_M_A_s is None:
         M_A_s = np.zeros(no_shp)
     else:
         M_A_s = initial_M_A_s.copy()
 
+    initial_M_F_s = initial_state.get('M_F_s')
     if initial_M_F_s is None:
         M_F_s = np.zeros(no_shp)
     else:
@@ -48,11 +58,13 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
 
     M_R_s = 1 - M_A_s - M_F_s
 
+    initial_M_A_d = initial_state.get('M_A_d')
     if initial_M_A_d is None:
         M_A_d = 0.0
     else:
         M_A_d = initial_M_A_d
 
+    initial_M_F_d = initial_state.get('M_F_d')
     if initial_M_F_d is None:
         M_F_d = 0.0
     else:
