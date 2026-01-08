@@ -74,3 +74,8 @@ These differences arise from the implemented logic in the Matlab model, where du
 
 In Matlab if `sum()` receives a 1D array, it returns a scalar, equal to the sum of all its elements.
 Since the parameter `k_ali=1` in this simulation, this results in a scalar value and not a vector.
+
+The following plots show the results of the PDFs for the cohesion, elongation and polarization distributions:
+![cohesion_pdf.png](../../res/cohesion_pdf.png)
+![elongation_pdf.png](../../res/elongation_pdf.png)
+![polarization_pdf.png](../../res/polarization_pdf.png)
