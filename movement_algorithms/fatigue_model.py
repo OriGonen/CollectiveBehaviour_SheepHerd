@@ -1,4 +1,6 @@
 import numpy as np
+
+
 # Implementation of the fatigue sheepherding model FSM
 
 def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
@@ -7,7 +9,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                   L_D, L_R, v_s_min, v_d_min, v_d_close,
                   TL_gather, TL_drive,
                   F_d, R_d, L_D_d, L_R_d,
-                  delta_t = 1,
+                  delta_t=1,
                   initial_state=None):
     if initial_state is None:
         initial_state = {}
@@ -144,13 +146,13 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                 C_i = L_R * (TL_i - M_A_s[i])
 
             # This can be used to check how many times it drifts, but it can also be calculated as the other ones
-            #M_R_next = M_R_s[i] + delta_t * (-C_i + R_i[i] * M_F_s[i])
+            # M_R_next = M_R_s[i] + delta_t * (-C_i + R_i[i] * M_F_s[i])
             M_A_next = M_A_s[i] + delta_t * (C_i - F_i[i] * M_A_s[i])
             M_F_next = M_F_s[i] + delta_t * (F_i[i] * M_A_s[i] - R_i[i] * M_F_s[i])
 
             M_A_s[i] = np.clip(M_A_next, 0, 1)
             M_F_s[i] = np.clip(M_F_next, 0, 1)
-            #TODO: explain this min
+            # TODO: explain this min
             M_F_s[i] = np.minimum(M_F_s[i], 1 - M_A_s[i])
             M_R_s[i] = 1 - M_A_s[i] - M_F_s[i]
 
@@ -276,7 +278,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
         else:
             C_d = L_R_d * (TL_d - M_A_d)
 
-        #M_R_next_d = M_R_d + delta_t * (-C_d + R_d * M_F_d)
+        # M_R_next_d = M_R_d + delta_t * (-C_d + R_d * M_F_d)
         M_A_next_d = M_A_d + delta_t * (C_d - F_d * M_A_d)
         M_F_next_d = M_F_d + delta_t * (F_d * M_A_d - R_d * M_F_d)
 
@@ -304,44 +306,43 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
             vel_d_dat[t] = vel_d_t_1
             spd_d_dat[t] = v_d_eff
             force_slow_t[t] = 1
-        elif mode == "collect":
-            # Collecting behavior
-            grp_centre = np.mean(pos_s_t_1, axis=0)
-            r_gcm_i = pos_s_t_1 - grp_centre
-            dist_gcm_i = np.linalg.norm(r_gcm_i, axis=1)
-            s_p = np.argmax(dist_gcm_i)
-            d_behind = dist_gcm_i[s_p] + pc
-            rc = grp_centre + d_behind * (r_gcm_i[s_p, :] / dist_gcm_i[s_p])
-            rdc = rc - pos_d_t_1
-            rdc = rdc / np.linalg.norm(rdc)
+        else:
+            if mode == "collect":
+                # Collecting behavior
+                grp_centre = np.mean(pos_s_t_1, axis=0)
+                r_gcm_i = pos_s_t_1 - grp_centre
+                dist_gcm_i = np.linalg.norm(r_gcm_i, axis=1)
+                s_p = np.argmax(dist_gcm_i)
+                d_behind = dist_gcm_i[s_p] + pc
+                rc = grp_centre + d_behind * (r_gcm_i[s_p, :] / dist_gcm_i[s_p])
+                rdc = rc - pos_d_t_1
+                rdc = rdc / np.linalg.norm(rdc)
 
-            theta_error = 2 * np.pi * np.random.rand()
-            r_err = np.array([np.cos(theta_error), np.sin(theta_error)])
+                theta_error = 2 * np.pi * np.random.rand()
+                r_err = np.array([np.cos(theta_error), np.sin(theta_error)])
 
-            vel_next = rdc + e * r_err
-            vel_next = vel_next / np.linalg.norm(vel_next)
+                vel_next = rdc + e * r_err
+                vel_next = vel_next / np.linalg.norm(vel_next)
 
-            pos_d = pos_d + v_d_eff * vel_next
-            collect_t[t] = 1
-            vel_d_t_1 = vel_next
-            vel_d_dat[t] = vel_next
-            spd_d_dat[t] = v_d_eff
-        else: # drive
-            # Driving behavior
-            grp_centre = np.mean(pos_s_t_1, axis=0)
-            d_behind = np.linalg.norm(grp_centre) + pd
-            r_drive = d_behind * (grp_centre / np.linalg.norm(grp_centre))
-            r_drive_orient = r_drive - pos_d_t_1
-            r_drive_orient = r_drive_orient / np.linalg.norm(r_drive_orient)
+                pos_d = pos_d + v_d_eff * vel_next
+                collect_t[t] = 1
+            else:  # drive
+                # Driving behavior
+                grp_centre = np.mean(pos_s_t_1, axis=0)
+                d_behind = np.linalg.norm(grp_centre) + pd
+                r_drive = d_behind * (grp_centre / np.linalg.norm(grp_centre))
+                r_drive_orient = r_drive - pos_d_t_1
+                r_drive_orient = r_drive_orient / np.linalg.norm(r_drive_orient)
 
-            theta_error = 2 * np.pi * np.random.rand()
-            r_err = np.array([np.cos(theta_error), np.sin(theta_error)])
+                theta_error = 2 * np.pi * np.random.rand()
+                r_err = np.array([np.cos(theta_error), np.sin(theta_error)])
 
-            vel_next = r_drive_orient + e * r_err
-            vel_next = vel_next / np.linalg.norm(vel_next)
+                vel_next = r_drive_orient + e * r_err
+                vel_next = vel_next / np.linalg.norm(vel_next)
 
-            pos_d = pos_d + v_d_eff * vel_next
-            drive_t[t] = 1
+                pos_d = pos_d + v_d_eff * vel_next
+                drive_t[t] = 1
+
             vel_d_t_1 = vel_next
             vel_d_dat[t] = vel_next
             spd_d_dat[t] = v_d_eff
