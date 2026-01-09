@@ -112,49 +112,28 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
     vel_d_t_1 = vel_d.copy()
 
     for t in range(1, n_iter):
-        # 1. Sheep Demand (Target Load)
-        # Dog-induced demand
-        dist_s_d = np.linalg.norm(pos_s_t_1 - pos_d_t_1, axis=1)
-        TL_s_dog = np.where(dist_s_d < rad_rep_dog, TL_max_dog * (1 - dist_s_d / rad_rep_dog), 0.0)
-
-        # Sheep-sheep proximity demand
-        # Compute nearest-neighbor distance for each sheep
-        # Using a simple O(N^2) for now as N is usually small
-        dist_s_s = np.linalg.norm(pos_s_t_1[:, np.newaxis, :] - pos_s_t_1[np.newaxis, :, :], axis=2)
-        np.fill_diagonal(dist_s_s, np.inf)
-        d_i_min = np.min(dist_s_s, axis=1)
-        TL_s_soc = np.where(d_i_min < rad_rep_s, TL_max_soc * (1 - d_i_min / rad_rep_s), 0.0)
-
-        TL_s = np.minimum(1.0, TL_s_dog + TL_s_soc)
-
-        # 2. Dog Demand (Target Load) - depends on mode
-        # Need to determine mode first
-        r_dg_shp = pos_s_t_1 - pos_d_t_1
-        dist_rds = np.linalg.norm(r_dg_shp, axis=1)
-        grp_centre = np.mean(pos_s_t_1, axis=0)
-        if t == 1:
-            v_B_n = 0.0
-        else:
-            prev_grp_centre = np.mean(pos_s_dat[t - 1], axis=0)
-            v_B_n = np.linalg.norm(grp_centre - prev_grp_centre) / delta_t
-
-        if np.min(dist_rds) <= l_a:
-            TL_d = 0.0
-            mode = "slow"
-        else:
-            r_gcm_i = pos_s_t_1 - grp_centre
-            dist_gcm_i = np.linalg.norm(r_gcm_i, axis=1)
-            if np.max(dist_gcm_i) >= f_n:
-                TL_d = TL_gather
-                mode = "collect"
-            else:
-                TL_d = TL_drive * (v_B_n / v_dog)
-                mode = "drive"
-
-        # 3. Activation Drive (C) and Fatigue Update (3CC)
-        # Sheep update
+        # Update fatigue states for sheep
         for i in range(no_shp):
-            TL_i = TL_s[i]
+            # Dog-induced demand
+            dist_iD = np.linalg.norm(pos_d_t_1 - pos_s_t_1[i, :])
+            if dist_iD >= rad_rep_dog:
+                TL_i_dog = 0.0
+            else:
+                TL_i_dog = TL_max_dog * (1 - (dist_iD / rad_rep_dog))
+
+            # Sheep-sheep proximity demand
+            r_ij = pos_s_t_1 - pos_s_t_1[i, :]
+            mag_rij = np.linalg.norm(r_ij, axis=1)
+
+            if len(mag_rij) > 1:
+                d_i_min = np.min(mag_rij[np.arange(len(mag_rij)) != i])
+                TL_i_soc = TL_max_soc * (1 - (d_i_min / rad_rep_s))
+            else:
+                TL_i_soc = 0.0
+
+            TL_i = np.minimum(1.0, TL_i_dog + TL_i_soc)
+
+            # Calculate the activation drive
             if M_A_s[i] < TL_i:
                 if M_R_s[i] >= (TL_i - M_A_s[i]):
                     C_i = L_D * (TL_i - M_A_s[i])
@@ -163,57 +142,33 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
             else:
                 C_i = L_R * (TL_i - M_A_s[i])
 
-            C_s_dat[t, i] = C_i
-
-            # Euler update
-            M_R_next = M_R_s[i] + delta_t * (-C_i + R_i * M_F_s[i])
+            # This can be used to check how many times it drifts, but it can also be calculated as the other ones
+            #M_R_next = M_R_s[i] + delta_t * (-C_i + R_i * M_F_s[i])
             M_A_next = M_A_s[i] + delta_t * (C_i - F_i * M_A_s[i])
             M_F_next = M_F_s[i] + delta_t * (F_i * M_A_s[i] - R_i * M_F_s[i])
 
-            # Clipping and conservation
             M_A_s[i] = np.clip(M_A_next, 0, 1)
             M_F_s[i] = np.clip(M_F_next, 0, 1)
-            # Recompute MR by conservation and ensure MF mass fix
+            #TODO: explain this min
             M_F_s[i] = np.minimum(M_F_s[i], 1 - M_A_s[i])
             M_R_s[i] = 1 - M_A_s[i] - M_F_s[i]
 
-        # Dog update
-        if M_A_d < TL_d:
-            if M_R_d >= (TL_d - M_A_d):
-                C_d = L_D * (TL_d - M_A_d)
-            else:
-                C_d = L_D * M_R_d
-        else:
-            C_d = L_R * (TL_d - M_A_d)
+            TL_s_dat[t, i] = TL_i
+            C_s_dat[t, i] = C_i
 
-        C_d_dat[t] = C_d
+        M_A_s_dat[t] = M_A_s
+        M_F_s_dat[t] = M_F_s
+        M_R_s_dat[t] = M_R_s
 
-        M_R_next_d = M_R_d + delta_t * (-C_d + R_i * M_F_d)
-        M_A_next_d = M_A_d + delta_t * (C_d - F_i * M_A_d)
-        M_F_next_d = M_F_d + delta_t * (F_i * M_A_d - R_i * M_F_d)
-
-        M_A_d = np.clip(M_A_next_d, 0, 1)
-        M_F_d = np.clip(M_F_next_d, 0, 1)
-        # Recompute MR by conservation and ensure MF mass fix
-        M_F_d = np.minimum(M_F_d, 1 - M_A_d)
-        M_R_d = 1 - M_A_d - M_F_d
-
-        # 4. Fatigue-scaled Speed
-        # Sheep speed
-        eps_v_s = v_s_min / vs
-        RC_s = 1 - M_F_s
-        v_s_fat = vs * (eps_v_s + (1 - eps_v_s) * RC_s)
-        v_s_eff = np.where(TL_s > 0, np.clip(v_s_fat, v_s_min, vs), 0.0)
-
-        # Dog speed
-        eps_v_d = v_d_min / v_dog
-        RC_d = 1 - M_F_d
-        v_d_fat = v_dog * (eps_v_d + (1 - eps_v_d) * RC_d)
-        v_d_cap = v_d_close if mode == "slow" else v_dog
-        v_d_eff = np.minimum(v_d_cap, np.maximum(v_d_min, v_d_fat))
-
-        # 5. Position and Velocity Updates (Heading logic same as fatigue_model.py)
+        # Sheep movement
         for i in range(no_shp):
+            # Fatigue-scaled speed
+            eps_v_s = v_s_min / vs
+            RC_i = 1 - M_F_s[i]
+            v_i_fat = vs * (eps_v_s + (1 - eps_v_s) * RC_i)
+            v_i_eff = np.clip(v_i_fat, v_s_min, vs) if TL_s_dat[t, i] > 0 else 0.0
+            spd_s_dat[t, i] = v_i_eff
+
             r_shp_dg = pos_d_t_1 - pos_s_t_1[i, :]
             dist_rsd = np.linalg.norm(r_shp_dg)
             r_shp_dg_u = r_shp_dg / dist_rsd
@@ -234,9 +189,8 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                     vel_next = h * vel_s_t_1[i, :] + rho_a * r_ij_rep
                     vel_next = vel_next / np.linalg.norm(vel_next)
 
-                    pos_s[i, :] = pos_s[i, :] + v_s_eff[i] * vel_next
+                    pos_s[i, :] = pos_s[i, :] + v_i_eff * vel_next
                     vel_s_dat[t, i] = vel_next
-                    spd_s_dat[t, i] = v_s_eff[i]
                 else:
                     vel_s_dat[t, i] = vel_s_t_1[i, :]
                     spd_s_dat[t, i] = 0.0
@@ -287,11 +241,66 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                                 c * r_atr + e * r_err + alg_str * r_alg)
 
                 vel_next = vel_next / np.linalg.norm(vel_next)
-                pos_s[i, :] = pos_s[i, :] + v_s_eff[i] * vel_next
+                pos_s[i, :] = pos_s[i, :] + v_i_eff * vel_next
                 vel_s_dat[t, i] = vel_next
-                spd_s_dat[t, i] = v_s_eff[i]
+                spd_s[i] = v_i_eff
 
-        # Dog movement update
+        # Dog movement logic to determine TL_d
+        r_dg_shp = pos_s_t_1 - pos_d_t_1
+        dist_rds = np.linalg.norm(r_dg_shp, axis=1)
+        grp_centre = np.mean(pos_s_t_1, axis=0)
+
+        if t == 1:
+            v_B_n = 0.0
+        else:
+            prev_grp_centre = np.mean(pos_s_dat[t - 1], axis=0)
+            v_B_n = np.linalg.norm(grp_centre - prev_grp_centre) / delta_t
+
+        if np.min(dist_rds) <= l_a:
+            TL_d = 0.0
+            mode = "slow"
+        else:
+            r_gcm_i = pos_s_t_1 - grp_centre
+            dist_gcm_i = np.linalg.norm(r_gcm_i, axis=1)
+            if np.max(dist_gcm_i) >= f_n:
+                TL_d = TL_gather
+                mode = "collect"
+            else:
+                TL_d = TL_drive * (v_B_n / v_dog)
+                mode = "drive"
+
+        # Update dog fatigue state
+        if M_A_d < TL_d:
+            if M_R_d >= (TL_d - M_A_d):
+                C_d = L_D * (TL_d - M_A_d)
+            else:
+                C_d = L_D * M_R_d
+        else:
+            C_d = L_R * (TL_d - M_A_d)
+
+        M_R_next_d = M_R_d + delta_t * (-C_d + R_i * M_F_d)
+        M_A_next_d = M_A_d + delta_t * (C_d - F_i * M_A_d)
+        M_F_next_d = M_F_d + delta_t * (F_i * M_A_d - R_i * M_F_d)
+
+        M_A_d = np.clip(M_A_next_d, 0, 1)
+        M_F_d = np.clip(M_F_next_d, 0, 1)
+        M_F_d = np.minimum(M_F_d, 1 - M_A_d)
+        M_R_d = 1 - M_A_d - M_F_d
+
+        TL_d_dat[t] = TL_d
+        C_d_dat[t] = C_d
+        M_A_d_dat[t] = M_A_d
+        M_F_d_dat[t] = M_F_d
+        M_R_d_dat[t] = M_R_d
+
+        # Dog speed
+        eps_v_d = v_d_min / v_dog
+        RC_d = 1 - M_F_d
+        v_d_fat = v_dog * (eps_v_d + (1 - eps_v_d) * RC_d)
+        v_d_cap = v_d_close if mode == "slow" else v_dog
+        v_d_eff = np.minimum(v_d_cap, np.maximum(v_d_min, v_d_fat))
+
+        # Dog movement
         if mode == "slow":
             pos_d = pos_d + v_d_eff * vel_d_t_1
             vel_d_dat[t] = vel_d_t_1
@@ -317,7 +326,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
             vel_d_t_1 = vel_next
             vel_d_dat[t] = vel_next
             spd_d_dat[t] = v_d_eff
-        else:  # drive
+        else: # drive
             d_behind = np.linalg.norm(grp_centre) + pd
             r_drive = d_behind * (grp_centre / np.linalg.norm(grp_centre))
             r_drive_orient = r_drive - pos_d_t_1
@@ -335,22 +344,12 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
             vel_d_dat[t] = vel_next
             spd_d_dat[t] = v_d_eff
 
-        # Store states
-        TL_s_dat[t] = TL_s
-        TL_d_dat[t] = TL_d
-        M_A_s_dat[t] = M_A_s
-        M_F_s_dat[t] = M_F_s
-        M_R_s_dat[t] = M_R_s
-        M_A_d_dat[t] = M_A_d
-        M_F_d_dat[t] = M_F_d
-        M_R_d_dat[t] = M_R_d
         pos_s_dat[t] = pos_s
-        pos_d_dat[t] = pos_d
-
-        # Prepare for next iteration
         pos_s_t_1 = pos_s.copy()
-        pos_d_t_1 = pos_d.copy()
         vel_s_t_1 = vel_s_dat[t]
+
+        pos_d_dat[t] = pos_d
+        pos_d_t_1 = pos_d.copy()
 
     return {
         "pos_s_dat": pos_s_dat,
