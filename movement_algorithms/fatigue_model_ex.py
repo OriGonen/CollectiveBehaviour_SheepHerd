@@ -1,12 +1,12 @@
 import numpy as np
 # Implementation of the fatigue sheepherding model FSM
-#TODO: add the F, R, L_D, L_R for dog, others are vectors
 
 def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                   k_alg, vs, v_dog, h, rho_a, rho_d, e, c, alg_str, f_n,
                   pd, pc, n_iter, F_i, R_i, TL_max_dog, TL_max_soc,
                   L_D, L_R, v_s_min, v_d_min, v_d_close,
                   TL_gather, TL_drive,
+                  F_d, R_d, L_D_d, L_R_d,
                   delta_t = 1,
                   initial_state=None):
     if initial_state is None:
@@ -144,9 +144,9 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                 C_i = L_R * (TL_i - M_A_s[i])
 
             # This can be used to check how many times it drifts, but it can also be calculated as the other ones
-            #M_R_next = M_R_s[i] + delta_t * (-C_i + R_i * M_F_s[i])
-            M_A_next = M_A_s[i] + delta_t * (C_i - F_i * M_A_s[i])
-            M_F_next = M_F_s[i] + delta_t * (F_i * M_A_s[i] - R_i * M_F_s[i])
+            #M_R_next = M_R_s[i] + delta_t * (-C_i + R_i[i] * M_F_s[i])
+            M_A_next = M_A_s[i] + delta_t * (C_i - F_i[i] * M_A_s[i])
+            M_F_next = M_F_s[i] + delta_t * (F_i[i] * M_A_s[i] - R_i[i] * M_F_s[i])
 
             M_A_s[i] = np.clip(M_A_next, 0, 1)
             M_F_s[i] = np.clip(M_F_next, 0, 1)
@@ -252,7 +252,6 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
 
         grp_centre = np.mean(pos_s_t_1, axis=0)
         prev_grp_centre = np.mean(pos_s_dat[t - 1], axis=0)
-        #FIXME: this is equal to 1 anyways
         v_B_n = np.linalg.norm(grp_centre - prev_grp_centre) / delta_t
 
         if np.min(dist_rds) <= rad_rep_s:
@@ -271,15 +270,15 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
         # Update dog fatigue state
         if M_A_d < TL_d:
             if M_R_d >= (TL_d - M_A_d):
-                C_d = L_D * (TL_d - M_A_d)
+                C_d = L_D_d * (TL_d - M_A_d)
             else:
-                C_d = L_D * M_R_d
+                C_d = L_D_d * M_R_d
         else:
-            C_d = L_R * (TL_d - M_A_d)
+            C_d = L_R_d * (TL_d - M_A_d)
 
-        #M_R_next_d = M_R_d + delta_t * (-C_d + R_i * M_F_d)
-        M_A_next_d = M_A_d + delta_t * (C_d - F_i * M_A_d)
-        M_F_next_d = M_F_d + delta_t * (F_i * M_A_d - R_i * M_F_d)
+        #M_R_next_d = M_R_d + delta_t * (-C_d + R_d * M_F_d)
+        M_A_next_d = M_A_d + delta_t * (C_d - F_d * M_A_d)
+        M_F_next_d = M_F_d + delta_t * (F_d * M_A_d - R_d * M_F_d)
 
         M_A_d = np.clip(M_A_next_d, 0, 1)
         M_F_d = np.clip(M_F_next_d, 0, 1)
