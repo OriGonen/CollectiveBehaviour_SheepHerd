@@ -234,22 +234,22 @@ def print_comparison_summary(metrics_list, algorithm_names):
 if __name__ == "__main__":
 
     USE_ORIGINAL = True
-    USE_STROMBOM = True
+    USE_FATIGUE = True
 
     # =========================================================================
-    # ALGORITHM 1: Strombom Model
+    # ALGORITHM 1: Fatigue Model
     # =========================================================================
 
-    if USE_STROMBOM:
+    if USE_FATIGUE:
         print("\n" + "=" * 70)
         print("RUNNING STROMBOM ALGORITHM".center(70))
         print("=" * 70 + "\n")
 
-        from movement_algorithms.Stormbom_movement_functions import (
-            simulate_model_strombom_main
+        from Movement_Algorithms.fatigue_model import (
+            herding_model
         )
 
-        strombom_params = dict(
+        fatigue_params = dict(
             num_sheep=30,
             box_length=100.0,
             ra_dist=2.0,  # sheep–sheep repulsion distance
@@ -270,12 +270,12 @@ if __name__ == "__main__":
         )
 
         print("Simulation parameters:")
-        for key, val in strombom_params.items():
+        for key, val in fatigue_params.items():
             print(f"  {key:<25}: {val}")
 
         print("\nRunning simulation...")
         (sheep_pos_log, dog_pos_log, sheep_vel_log, dog_vel_log,
-         dog_speeds_log, _, _, _) = simulate_model_strombom_main(**strombom_params)
+         dog_speeds_log, _, _, _) = herding_model(**fatigue_params)
 
         print("Analyzing metrics...")
         metrics_strombom = plot_metrics(
@@ -283,6 +283,8 @@ if __name__ == "__main__":
             save_path="metrics_strombom.png",
             algorithm_name="Strombom Model"
         )
+
+
 
     # =========================================================================
     # ALGORITHM 2: Original Model
@@ -293,7 +295,7 @@ if __name__ == "__main__":
         print("RUNNING ORIGINAL ALGORITHM".center(70))
         print("=" * 70 + "\n")
 
-        from movement_algorithms.original_movement_functions import simulate_model
+        from Movement_Algorithms.jadhav_model import herding_model as original_herding
 
         original_params = dict(
             num_sheep=30,
@@ -323,7 +325,7 @@ if __name__ == "__main__":
 
         print("\nRunning simulation...")
         (sheep_pos_log, dog_pos_log, sheep_vel_log, dog_vel_log,
-         dog_speeds_log, _, _, _) = simulate_model(**original_params)
+         dog_speeds_log, _, _, _) = original_herding(**original_params)
 
         print("Analyzing metrics...")
         metrics_original = plot_metrics(
@@ -336,7 +338,7 @@ if __name__ == "__main__":
     # COMPARISON (only if both algorithms are enabled)
     # =========================================================================
 
-    if USE_STROMBOM and USE_ORIGINAL:
+    if USE_FATIGUE and USE_ORIGINAL:
         print("\n" + "=" * 70)
         print("GENERATING COMPARISON PLOTS".center(70))
         print("=" * 70 + "\n")

@@ -3,23 +3,27 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utils.metrics import calculate_cohesion_sim, calculate_polarization_sim, \
-    calculate_elongation_sim
+from utils.metrics import calculate_cohesion_sim, calculate_polarization_sim, calculate_elongation_sim,calculate_lateral_movements,calculate_relative_spatial_position
 from utils.utils import load_simulation_results, load_simulation_results_matlab
+
+
 
 
 def calculate_all_metrics(data):
     pos_s = data['pos_s']
     vel_s = data['vel_s']
-
+    pos_d = data['pos_d']
     cohesion_all = np.ravel(calculate_cohesion_sim(pos_s))
     polarization_all = np.ravel(calculate_polarization_sim(vel_s))
     elongation_all = np.ravel(calculate_elongation_sim(pos_s, vel_s))
-
+    lateral_all = np.ravel(calculate_lateral_movements(pos_s,vel_s,pos_d))
+    relative_all = calculate_relative_spatial_position(pos_s,vel_s)
     return {
         'cohesion': np.array(cohesion_all),
         'polarization': np.array(polarization_all),
-        'elongation': np.array(elongation_all)
+        'elongation': np.array(elongation_all),
+        'lateral':np.array(lateral_all),
+        'relative': np.array(relative_all)
     }
 
 
@@ -31,6 +35,23 @@ def compute_pdf(data, bins):
     centers = (edges[:-1] + edges[1:]) / 2
 
     return centers, counts
+
+
+def plot_relative_position(data,data_matlab,ylabel=None,color='#2365C4',filename=None):
+    # print(data.shape)
+    # for i in range(data.shape[1]):
+    #     print(np.mean(data[:,i]))
+
+    plt.figure(figsize=(10, 7.5))
+
+    plt.boxplot([data[:, i] for i in range(data.shape[1])],showfliers=True)
+
+    plt.xlabel(xlabel="Sheep ID")
+    plt.ylabel(ylabel=ylabel)
+    plt.xticks(range(1, 15), [str(i) for i in range(1, 15)])
+    plt.savefig(filename,dpi=150,bbox_inches='tight')
+
+
 
 
 def plot_metric_pdf(data, data_matlab=None, bins=None, xlabel='', color='#2365C4',
@@ -48,6 +69,8 @@ def plot_metric_pdf(data, data_matlab=None, bins=None, xlabel='', color='#2365C4
     centers, pdf = compute_pdf(data, bins)
 
     xlim = [np.min(data_clean) - 0.3, np.max(data_clean) + 0.3]
+    if "lateral" in filename:
+        xlim = [8, -8]
     max_pdf = np.max(pdf)
     ylim = [0, max_pdf * 1.15]
 
@@ -89,7 +112,7 @@ def plot_metric_pdf(data, data_matlab=None, bins=None, xlabel='', color='#2365C4
     plt.tight_layout()
     if filename:
         plt.savefig(filename, dpi=150, bbox_inches='tight')
-    plt.show()
+    #plt.show()
 
     return fig, ax
 
@@ -111,37 +134,54 @@ def load_data(filename):
 
 if __name__ == "__main__":
     filename = "../data/vivek_14_300_370.npz"
-    filename_matlab = "../data/fixed_hm_n_14.mat"
+    filename_matlab = "../data/hm_1_14_det.mat"
 
     data = load_data(filename)
+
     metrics = calculate_all_metrics(data)
 
-    data_matlab = load_data(filename_matlab)
-    metrics_matlab = calculate_all_metrics(data_matlab)
+    calculate_relative_spatial_position(data['pos_s'],data['vel_s'])
+
+    #data_matlab = load_data(filename_matlab)
+    #metrics_matlab = calculate_all_metrics(data_matlab)
 
     plot_metric_pdf(
         data=metrics['polarization'],
-        data_matlab=metrics_matlab['polarization'],
+        data_matlab=None,
         bins=np.linspace(0, 1, 26),
         xlabel='Group Polarization',
         color='#2365C4',
-        filename='polarization_pdf.png'
+        filename='polarization_pdf.pdf'
     )
 
     plot_metric_pdf(
         data=metrics['cohesion'],
-        data_matlab=metrics_matlab['cohesion'],
+        data_matlab=None,
         bin_width=0.2,
         xlabel='Cohesion (m)',
         color='#964B00',
-        filename='cohesion_pdf.png'
+        filename='cohesion_pdf.pdf'
     )
 
     plot_metric_pdf(
         data=metrics['elongation'],
-        data_matlab=metrics_matlab['elongation'],
+        data_matlab=None,
         bin_width=0.2,
         xlabel='Elongation',
         color='#A020F0',
-        filename='elongation_pdf.png'
+        filename='elongation_pdf.pdf'
     )
+
+    plot_metric_pdf(
+        data=metrics['lateral'],
+        data_matlab=None,
+        bins=np.linspace(-8, 8, 15),
+        xlabel='Dog lateral movements',
+        color='#024B00',
+        filename='lateral_pdf.pdf'
+    )
+    plot_relative_position(data=metrics['relative'],
+                           data_matlab=None,
+                           ylabel="d (m)",
+                           filename="relative.pdf"
+                           )
