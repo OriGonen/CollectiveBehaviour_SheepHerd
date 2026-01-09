@@ -167,18 +167,18 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
             RC_i = 1 - M_F_s[i]
             v_i_fat = vs * (eps_v_s + (1 - eps_v_s) * RC_i)
             v_i_eff = np.clip(v_i_fat, v_s_min, vs) if TL_s_dat[t, i] > 0 else 0.0
-            spd_s_dat[t, i] = v_i_eff
 
             r_shp_dg = pos_d_t_1 - pos_s_t_1[i, :]
             dist_rsd = np.linalg.norm(r_shp_dg)
-            r_shp_dg_u = r_shp_dg / dist_rsd
-
-            r_ij = pos_s_t_1 - pos_s_t_1[i, :]
-            mag_rij = np.linalg.norm(r_ij, axis=1)
+            r_shp_dg = r_shp_dg / dist_rsd
 
             if dist_rsd > rad_rep_dog:
                 # Beyond dog interaction radius
+                r_ij = pos_s_t_1 - pos_s_t_1[i, :]
+                mag_rij = np.linalg.norm(r_ij, axis=1)
+
                 rep_j = np.where(mag_rij < rad_rep_s)[0]
+
                 if len(rep_j) > 1:
                     rep_j = rep_j[rep_j != i]
                     r_ij_rep = r_ij[rep_j, :] / mag_rij[rep_j, np.newaxis]
@@ -191,14 +191,19 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
 
                     pos_s[i, :] = pos_s[i, :] + v_i_eff * vel_next
                     vel_s_dat[t, i] = vel_next
+                    spd_s_dat[t, i] = v_i_eff
                 else:
                     vel_s_dat[t, i] = vel_s_t_1[i, :]
                     spd_s_dat[t, i] = 0.0
             else:
                 # Dog is visible
+                r_ij = pos_s_t_1 - pos_s_t_1[i, :]
+                mag_rij = np.linalg.norm(r_ij, axis=1)
+
                 rep_j = np.where(mag_rij < rad_rep_s)[0]
-                r_ij_rep = np.zeros(2)
                 is_err = 0
+                r_ij_rep = np.zeros(2)
+
                 if len(rep_j) > 1:
                     rep_j = rep_j[rep_j != i]
                     r_ij_rep = r_ij[rep_j, :] / mag_rij[rep_j, np.newaxis]
@@ -207,25 +212,20 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                     r_ij_rep = -r_ij_rep
                     is_err = 1
 
-                r_shp_dg_u = -r_shp_dg_u  # Flee from dog
+                # Repulsion from dog
+                r_shp_dg = -r_shp_dg
 
                 # Attraction to local center of mass
                 lcm_j = np.argsort(mag_rij)[1:K_atr + 1]
-                if len(lcm_j) > 0:
-                    lcm_j_sel = np.random.choice(lcm_j, min(k_atr, len(lcm_j)), replace=False)
-                    r_atr = r_ij[lcm_j_sel, :] / (mag_rij[lcm_j_sel, np.newaxis] + np.finfo(float).eps)
-                    r_atr = np.sum(r_atr, axis=0)
-                    r_atr = r_atr / (np.linalg.norm(r_atr) + np.finfo(float).eps)
-                else:
-                    r_atr = np.zeros(2)
+                lcm_j = np.random.choice(lcm_j, k_atr, replace=False)
+                r_atr = r_ij[lcm_j, :] / (mag_rij[lcm_j, np.newaxis] + np.finfo(float).eps)
+                r_atr = np.sum(r_atr, axis=0)
+                r_atr = r_atr / np.linalg.norm(r_atr)
 
                 # Alignment
-                if len(lcm_j) > 0:
-                    l_alg = np.random.choice(lcm_j, min(k_alg, len(lcm_j)), replace=False)
-                    r_alg = np.sum(vel_s_t_1[l_alg, :], axis=0)
-                    r_alg = r_alg / (np.linalg.norm(r_alg) + np.finfo(float).eps)
-                else:
-                    r_alg = np.zeros(2)
+                l_alg = np.random.choice(lcm_j, k_alg, replace=False)
+                r_alg = np.sum(vel_s_t_1[l_alg, :], axis=0)
+                r_alg = r_alg / np.linalg.norm(r_alg)
 
                 # Random error
                 theta_error = 2 * np.pi * np.random.rand()
@@ -234,10 +234,10 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                 # Resultant velocity
                 if is_err == 1:
                     vel_next = (h * vel_s_t_1[i, :] + rho_a * r_ij_rep +
-                                rho_d * r_shp_dg_u + c * r_atr + e * r_err +
+                                rho_d * r_shp_dg + c * r_atr + e * r_err +
                                 alg_str * r_alg)
                 else:
-                    vel_next = (h * vel_s_t_1[i, :] + rho_d * r_shp_dg_u +
+                    vel_next = (h * vel_s_t_1[i, :] + rho_d * r_shp_dg +
                                 c * r_atr + e * r_err + alg_str * r_alg)
 
                 vel_next = vel_next / np.linalg.norm(vel_next)
@@ -248,13 +248,11 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
         # Dog movement logic to determine TL_d
         r_dg_shp = pos_s_t_1 - pos_d_t_1
         dist_rds = np.linalg.norm(r_dg_shp, axis=1)
-        grp_centre = np.mean(pos_s_t_1, axis=0)
 
-        if t == 1:
-            v_B_n = 0.0
-        else:
-            prev_grp_centre = np.mean(pos_s_dat[t - 1], axis=0)
-            v_B_n = np.linalg.norm(grp_centre - prev_grp_centre) / delta_t
+        grp_centre = np.mean(pos_s_t_1, axis=0)
+        prev_grp_centre = np.mean(pos_s_dat[t - 1], axis=0)
+        #FIXME: this is equal to 1 anyways
+        v_B_n = np.linalg.norm(grp_centre - prev_grp_centre) / delta_t
 
         if np.min(dist_rds) <= l_a:
             TL_d = 0.0
@@ -278,7 +276,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
         else:
             C_d = L_R * (TL_d - M_A_d)
 
-        M_R_next_d = M_R_d + delta_t * (-C_d + R_i * M_F_d)
+        #M_R_next_d = M_R_d + delta_t * (-C_d + R_i * M_F_d)
         M_A_next_d = M_A_d + delta_t * (C_d - F_i * M_A_d)
         M_F_next_d = M_F_d + delta_t * (F_i * M_A_d - R_i * M_F_d)
 
@@ -307,6 +305,8 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
             spd_d_dat[t] = v_d_eff
             force_slow_t[t] = 1
         elif mode == "collect":
+            # Collecting behavior
+            grp_centre = np.mean(pos_s_t_1, axis=0)
             r_gcm_i = pos_s_t_1 - grp_centre
             dist_gcm_i = np.linalg.norm(r_gcm_i, axis=1)
             s_p = np.argmax(dist_gcm_i)
@@ -327,6 +327,8 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
             vel_d_dat[t] = vel_next
             spd_d_dat[t] = v_d_eff
         else: # drive
+            # Driving behavior
+            grp_centre = np.mean(pos_s_t_1, axis=0)
             d_behind = np.linalg.norm(grp_centre) + pd
             r_drive = d_behind * (grp_centre / np.linalg.norm(grp_centre))
             r_drive_orient = r_drive - pos_d_t_1
