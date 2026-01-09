@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from movement_algorithms.jadhav_model import herding_model
+from Movement_Algorithms.jadhav_model import herding_model
 from utils.utils import save_simulation_results
 
 def run_simulations(n_runs, no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,

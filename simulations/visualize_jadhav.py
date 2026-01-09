@@ -1,4 +1,4 @@
-from movement_algorithms.jadhav_model import herding_model
+from Movement_Algorithms.jadhav_model import herding_model
 
 import numpy as np
 

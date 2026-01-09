@@ -1,4 +1,4 @@
-from movement_algorithms.fatigue_model import herding_model
+from Movement_Algorithms.fatigue_model import herding_model
 
 import numpy as np
 
@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     params = dict(
         no_shp=num_sheep,
-        box_length=250,
+        box_length=500,
         rad_rep_s=rad_rep_s,
         rad_rep_dog=12,
         K_atr=10,
@@ -28,15 +28,17 @@ if __name__ == "__main__":
         f_n=rad_rep_s * (num_sheep ** (2/3)),
         pd=rad_rep_s * np.sqrt(num_sheep),
         pc=rad_rep_s,
-        n_iter=370,
+        n_iter=1000,
 
     )
 
-    F_i = np.full(num_sheep, 0.1)
-    R_i = np.full(num_sheep, 0.02)
-    L_D=10
+    F_i = np.full(num_sheep, 1)
+    R_i = np.full(num_sheep, 0)
+    F_d = 1
+    R_d = 0
+    L_D=1
     results = herding_model(**params, F_i=F_i, R_i=R_i, L_D=L_D, L_R=L_D, v_d_close=0.05,
-                            F_d = 0.05, R_d = 0.05,L_R_d=9, L_D_d=9,
+                            F_d = F_d, R_d = R_d,L_R_d=9, L_D_d=9,
                             TL_max_dog=1, TL_max_soc=0.1, TL_gather=1, v_s_min=0.1, v_d_min=0.1, TL_drive=1)
 
     anim = HerdingAnimation(results['pos_s_dat'], results['pos_d_dat'],

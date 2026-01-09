@@ -187,6 +187,63 @@ def calculate_elongation(sheep_positions, sheep_velocities, barycenter=None):
     return elongation
 
 
+def calculate_lateral_movements(sheep_positions, sheep_velocities, dog_positions):
+    """"
+    Calculates the lateral movements of dog in respect to sheep flock
+    Args:
+        sheep_positions - positions of each sheep in time
+        sheep_velocities - velocities of each sheep in time
+        dog_positions - positions of the dog in time
+    Returns
+        float - lateral movements value in time
+    """
+
+    # barycenter
+    barycenter = np.mean(sheep_positions, axis=2)
+
+    dog_rel = dog_positions - barycenter
+
+    grp_vel = np.mean(sheep_velocities, axis=2)
+
+    vx = grp_vel[:, :, 0]
+    vy = grp_vel[:, :, 1]
+
+    angles = np.arctan2(vy, vx)
+    cos_a = np.cos(angles)
+    sin_a = np.sin(angles)
+
+    x_rel = dog_rel[:, :, 0]
+    y_rel = dog_rel[:, :, 1]
+
+    xd = (x_rel * sin_a) - (y_rel * cos_a)
+    return xd.flatten(order='F')
+
+
+def calculate_relative_spatial_position(sheep_positions, sheep_velocities):
+    """
+    Caluclates the relative spatial position of each sheep in time
+    Args:
+        sheep_positions - positions of each sheep in time
+        sheep_velocities - velocities of each sheep in time
+    Returns
+        relative spatial position of each sheep in time
+        di, when di > 0 its in the front, dj < 0 its in the back
+
+    """
+
+    barycenter_vel = np.squeeze(np.mean(sheep_velocities, axis=2, keepdims=True))
+    norm = np.linalg.norm(barycenter_vel, axis=-1, keepdims=True)
+    v_hat = barycenter_vel / (norm + 1e-12)
+    rel_pos = sheep_positions[:, :, None, :, :] - sheep_positions[:, :, :, None, :]
+    proj = np.sum(rel_pos * v_hat[:, :, None, None, :], axis=-1)
+    d_ij = proj.mean(axis=1)
+    d_i = d_ij.mean(axis=2)
+
+    return d_i
+
+
+
+
 def analyze_simulation_metrics(sheep_pos_log, sheep_vel_log):
     """Calculate all metrics over the entire simulation.
 

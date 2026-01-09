@@ -4,23 +4,30 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from utils.metrics import calculate_cohesion_sim, calculate_polarization_sim, \
-    calculate_elongation_sim
+    calculate_elongation_sim,calculate_relative_spatial_position,calculate_lateral_movements
 from utils.utils import load_simulation_results, load_simulation_results_matlab
+
+
+
 
 
 def calculate_all_metrics(data):
     pos_s = data['pos_s']
     vel_s = data['vel_s']
-
+    pos_d = data['pos_d']
     cohesion_all = np.ravel(calculate_cohesion_sim(pos_s))
     polarization_all = np.ravel(calculate_polarization_sim(vel_s))
     elongation_all = np.ravel(calculate_elongation_sim(pos_s, vel_s))
-
+    lateral_all = np.ravel(calculate_lateral_movements(pos_s,vel_s,pos_d))
+    relative_all = calculate_relative_spatial_position(pos_s,vel_s)
     return {
         'cohesion': np.array(cohesion_all),
         'polarization': np.array(polarization_all),
-        'elongation': np.array(elongation_all)
+        'elongation': np.array(elongation_all),
+        'lateral':np.array(lateral_all),
+        'relative': np.array(relative_all)
     }
+
 
 
 def compute_pdf(data, bins):
@@ -109,6 +116,12 @@ def load_data(filename):
     return results
 
 
+
+
+
+
+
+
 if __name__ == "__main__":
     filename = "../data/vivek_14_300_370.npz"
     filename_matlab = "../data/fixed_hm_n_14.mat"
@@ -121,7 +134,7 @@ if __name__ == "__main__":
 
     plot_metric_pdf(
         data=metrics['polarization'],
-        data_matlab=metrics_matlab['polarization'],
+        data_matlab=None,
         bins=np.linspace(0, 1, 26),
         xlabel='Group Polarization',
         color='#2365C4',
@@ -130,7 +143,7 @@ if __name__ == "__main__":
 
     plot_metric_pdf(
         data=metrics['cohesion'],
-        data_matlab=metrics_matlab['cohesion'],
+        data_matlab=None,
         bin_width=0.2,
         xlabel='Cohesion (m)',
         color='#964B00',
@@ -139,7 +152,7 @@ if __name__ == "__main__":
 
     plot_metric_pdf(
         data=metrics['elongation'],
-        data_matlab=metrics_matlab['elongation'],
+        data_matlab=None,
         bin_width=0.2,
         xlabel='Elongation',
         color='#A020F0',

@@ -14,7 +14,7 @@ FONT_SIZE = 30
 
 class HerdingAnimation:
     def __init__(self, sheep_pos_log, dog_pos_log, sheep_vel_log, dog_vel_log,
-                 dog_speeds_log=None, window_size=1200, show_metrics=True, params=None):
+                 dog_speeds_log=None, window_size=800, show_metrics=True, params=None):
         self.params = params
         self.sheep_pos_log = sheep_pos_log
         self.dog_pos_log = dog_pos_log
