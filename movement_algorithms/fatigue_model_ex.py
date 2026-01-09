@@ -5,7 +5,7 @@ import numpy as np
 def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                   k_alg, vs, v_dog, h, rho_a, rho_d, e, c, alg_str, f_n,
                   pd, pc, n_iter, delta_t, F_i, R_i, TL_max_dog, TL_max_soc,
-                  L_D, L_R, v_s_min, v_d_min, v_d_close, l_a,
+                  L_D, L_R, v_s_min, v_d_min, v_d_close,
                   TL_gather, TL_drive,
                   initial_state=None):
     if initial_state is None:
@@ -254,7 +254,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
         #FIXME: this is equal to 1 anyways
         v_B_n = np.linalg.norm(grp_centre - prev_grp_centre) / delta_t
 
-        if np.min(dist_rds) <= l_a:
+        if np.min(dist_rds) <= rad_rep_s:
             TL_d = 0.0
             mode = "slow"
         else:
