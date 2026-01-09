@@ -34,12 +34,10 @@ if __name__ == "__main__":
 
     F_i = np.full(num_sheep, 0.1)
     R_i = np.full(num_sheep, 0.02)
-    F_i = 0.1
-    R_i = 0.02
-    deltaT = 1
     L_D=10
-    results = herding_model(**params, F_i=F_i, R_i=R_i, delta_t=deltaT, L_D=L_D, L_R=L_D, epsilon_v=0.05,
-                            TL_max=1, TL_gather=1, TL_chase=1, TL_idle=0, TL_drive=1)
+    results = herding_model(**params, F_i=F_i, R_i=R_i, L_D=L_D, L_R=L_D, v_d_close=0.05,
+                            F_d = 0.05, R_d = 0.05,L_R_d=9, L_D_d=9,
+                            TL_max_dog=1, TL_max_soc=0.1, TL_gather=1, v_s_min=0.1, v_d_min=0.1, TL_drive=1)
 
     anim = HerdingAnimation(results['pos_s_dat'], results['pos_d_dat'],
                             results['vel_s_dat'], results['vel_d_dat'],
