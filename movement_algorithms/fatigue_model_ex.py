@@ -4,9 +4,10 @@ import numpy as np
 
 def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                   k_alg, vs, v_dog, h, rho_a, rho_d, e, c, alg_str, f_n,
-                  pd, pc, n_iter, delta_t, F_i, R_i, TL_max_dog, TL_max_soc,
+                  pd, pc, n_iter, F_i, R_i, TL_max_dog, TL_max_soc,
                   L_D, L_R, v_s_min, v_d_min, v_d_close,
                   TL_gather, TL_drive,
+                  delta_t = 1,
                   initial_state=None):
     if initial_state is None:
         initial_state = {}
