@@ -65,15 +65,26 @@ class HerdingAnimation:
         self.text_color = (0, 0, 0)
         self.bounds_color = (100, 100, 100)
 
-    def _compute_global_bounds(self, padding=20):
-        """Calculate fixed bounds for the entire simulation"""
+    def _compute_global_bounds(self, padding_ratio=0.15):
+        """Calculate fixed bounds with adaptive padding"""
         all_positions = np.vstack([
             self.sheep_pos_log.reshape(-1, 2),
             self.dog_pos_log.reshape(-1, 2)
         ])
 
-        x_min, y_min = all_positions.min(axis=0) - padding
-        x_max, y_max = all_positions.max(axis=0) + padding
+        x_min, y_min = all_positions.min(axis=0)
+        x_max, y_max = all_positions.max(axis=0)
+
+        # Adaptive padding based on data range
+        x_range = x_max - x_min
+        y_range = y_max - y_min
+        x_padding = x_range * padding_ratio
+        y_padding = y_range * padding_ratio
+
+        x_min -= x_padding
+        x_max += x_padding
+        y_min -= y_padding
+        y_max += y_padding
 
         return (x_min, x_max, y_min, y_max), all_positions.mean(axis=0)
 
@@ -195,7 +206,7 @@ class HerdingAnimation:
         }
 
         utils.utils.save_simulation_results(results,
-                                            'simulation_run_' + ''.join(random.choices(string.ascii_uppercase, k=5)))
+                                            '../data/simulation_run_' + ''.join(random.choices(string.ascii_uppercase, k=8)))
 
     def render_overlay(self, screen, font):
         """Render left sidebar with information"""
