@@ -4,6 +4,8 @@ import numpy as np
 # TODO: Do we need TL_Drive and TL_gather? Why are they just equal at all time?
 # TODO: Should TL be calculated instead of just using min/max?
 # TODO: How well do we track through time, since deltaT=1 for us?
+# TODO: Remove deltaT
+# TODO: Add R,F,L,D for dog and R, F for sheep should be an array
 
 def rc_g_func(M_A, M_F, M_R, TL, epsilon_v):
     RC = M_R + M_A
@@ -90,6 +92,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
     vel_s_dat = np.full((n_iter, no_shp, 2), np.nan)
     pos_d_dat = np.full((n_iter, 2), np.nan)
     vel_d_dat = np.full((n_iter, 2), np.nan)
+    spd_s_dat = np.full((n_iter, no_shp), np.nan)
     spd_d_dat = np.full(n_iter, np.nan)
     collect_t = np.full(n_iter, np.nan)
     drive_t = np.full(n_iter, np.nan)
@@ -113,6 +116,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
     vel_s_dat[0] = vel_s
     pos_d_dat[0] = pos_d
     vel_d_dat[0] = vel_d
+    spd_s_dat[0] = spd_s
     spd_d_dat[0] = v_dog
 
     M_A_s_dat[0] = M_A_s
@@ -178,6 +182,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
         # Sheep movement
         for i in range(no_shp):
             v_i_eff = vs * g_func(M_A_s[i], M_F_s[i], M_R_s[i], TL_s_dat[t, i], epsilon_v)
+            spd_s_dat[t, i] = v_i_eff
             r_shp_dg = pos_d_t_1 - pos_s_t_1[i, :]
             dist_rsd = np.linalg.norm(r_shp_dg)
             r_shp_dg = r_shp_dg / dist_rsd
@@ -201,8 +206,10 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
 
                     pos_s[i, :] = pos_s[i, :] + v_i_eff * vel_next
                     vel_s_dat[t, i] = vel_next
+                    spd_s_dat[t, i] = v_i_eff
                 else:
                     vel_s_dat[t, i] = vel_s_t_1[i, :]
+                    spd_s_dat[t, i] = 0.0
             else:
                 # Dog is visible
                 r_ij = pos_s_t_1 - pos_s_t_1[i, :]
@@ -371,6 +378,7 @@ def herding_model(no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
         "pos_d_dat": pos_d_dat,
         "vel_s_dat": vel_s_dat,
         "vel_d_dat": vel_d_dat,
+        "spd_s_dat": spd_s_dat,
         "spd_d_dat": spd_d_dat,
         "collect_t": collect_t,
         "drive_t": drive_t,
