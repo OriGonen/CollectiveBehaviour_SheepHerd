@@ -5,9 +5,11 @@ from utils.utils import save_simulation_results
 
 def run_simulations_ftm(n_runs, no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
                         k_alg, vs, v_dog, h, rho_a, rho_d, e, c, alg_str, f_n,
-                        pd, pc, n_iter, delta_t, F_i, R_i, TL_max, TL_chase,
-                        L_D, L_R, epsilon_v, TL_gather, TL_drive, TL_idle,
-                        seed=None):
+                        pd, pc, n_iter, F_i, R_i, TL_max_dog, TL_max_soc,
+                        L_D, L_R, v_s_min, v_d_min, v_d_close,
+                        TL_gather, TL_drive,
+                        F_d, R_d, L_D_d, L_R_d,
+                        delta_t=1, seed=None):
     """
     Run multiple simulations of the fatigue herding model and collect results.
     """
@@ -49,10 +51,12 @@ def run_simulations_ftm(n_runs, no_shp, box_length, rad_rep_s, rad_rep_dog, K_at
             rad_rep_dog=rad_rep_dog, K_atr=K_atr, k_atr=k_atr,
             k_alg=k_alg, vs=vs, v_dog=v_dog, h=h, rho_a=rho_a, rho_d=rho_d,
             e=e, c=c, alg_str=alg_str, f_n=f_n, pd=pd, pc=pc,
-            n_iter=n_iter, delta_t=delta_t, F_i=F_i, R_i=R_i,
-            TL_max=TL_max, TL_chase=TL_chase, L_D=L_D, L_R=L_R,
-            epsilon_v=epsilon_v, TL_gather=TL_gather, TL_drive=TL_drive,
-            TL_idle=TL_idle
+            n_iter=n_iter, F_i=F_i, R_i=R_i,
+            TL_max_dog=TL_max_dog, TL_max_soc=TL_max_soc,
+            L_D=L_D, L_R=L_R, v_s_min=v_s_min, v_d_min=v_d_min, v_d_close=v_d_close,
+            TL_gather=TL_gather, TL_drive=TL_drive,
+            F_d=F_d, R_d=R_d, L_D_d=L_D_d, L_R_d=L_R_d,
+            delta_t=delta_t
         )
 
         all_pos_s[run] = res["pos_s_dat"]
@@ -107,9 +111,10 @@ def run_simulations_ftm(n_runs, no_shp, box_length, rad_rep_s, rad_rep_dog, K_at
             'k_alg': k_alg, 'vs': vs, 'v_dog': v_dog, 'h': h, 'rho_a': rho_a,
             'rho_d': rho_d, 'e': e, 'c': c, 'alg_str': alg_str, 'f_n': f_n,
             'pd': pd, 'pc': pc, 'n_iter': n_iter, 'delta_t': delta_t,
-            'F_i': F_i, 'R_i': R_i, 'TL_max': TL_max, 'TL_chase': TL_chase,
-            'L_D': L_D, 'L_R': L_R, 'epsilon_v': epsilon_v,
-            'TL_gather': TL_gather, 'TL_drive': TL_drive, 'TL_idle': TL_idle,
+            'F_i': F_i, 'R_i': R_i, 'TL_max_dog': TL_max_dog, 'TL_max_soc': TL_max_soc,
+            'L_D': L_D, 'L_R': L_R, 'v_s_min': v_s_min, 'v_d_min': v_d_min,
+            'v_d_close': v_d_close, 'TL_gather': TL_gather, 'TL_drive': TL_drive,
+            'F_d': F_d, 'R_d': R_d, 'L_D_d': L_D_d, 'L_R_d': L_R_d,
             'seed': seed
         }
     }
@@ -143,21 +148,25 @@ if __name__ == "__main__":
         pc=rad_rep_s,
         n_iter=n_iter,
         delta_t=1,
-        F_i=0.1,
-        R_i=0.02,
-        TL_max=0.8,
-        TL_chase=0.9,
+        F_i=np.full(num_sheep, 0.1),
+        R_i=np.full(num_sheep, 0.02),
+        TL_max_dog=0.8,
+        TL_max_soc=0.2,
         L_D=10,
         L_R=10,
-        epsilon_v=0.1,
+        v_s_min=0.1,
+        v_d_min=0.5,
+        v_d_close=0.5,
         TL_gather=0.6,
         TL_drive=0.6,
-        TL_idle=0.05
+        F_d=0.1,
+        R_d=0.02,
+        L_D_d=10,
+        L_R_d=10
     )
 
     if not Path("../data").exists():
-        print(f"Data directory was not found")
-        exit(1)
+        Path("../data").mkdir(parents=True, exist_ok=True)
 
     results = run_simulations_ftm(**params, n_runs=n_runs)
     save_simulation_results(results, '../data/' + filename)
