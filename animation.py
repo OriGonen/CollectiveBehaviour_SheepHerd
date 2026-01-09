@@ -1,16 +1,21 @@
-import pygame
-import numpy as np
-import csv
+import random
+import string
 
+import numpy as np
+import pygame
+
+import utils.utils
 from utils.metrics import calculate_cohesion, calculate_polarization
 
 FONT_SIZE = 30
+
 
 # TODO: Decide if we want scaling or just better calculation of the game window
 
 class HerdingAnimation:
     def __init__(self, sheep_pos_log, dog_pos_log, sheep_vel_log, dog_vel_log,
-                 dog_speeds_log=None, window_size=1200, show_metrics=True):
+                 dog_speeds_log=None, window_size=1200, show_metrics=True, params=None):
+        self.params = params
         self.sheep_pos_log = sheep_pos_log
         self.dog_pos_log = dog_pos_log
         self.sheep_vel_log = sheep_vel_log
@@ -60,15 +65,26 @@ class HerdingAnimation:
         self.text_color = (0, 0, 0)
         self.bounds_color = (100, 100, 100)
 
-    def _compute_global_bounds(self, padding=50):
-        """Calculate fixed bounds for the entire simulation"""
+    def _compute_global_bounds(self, padding_ratio=0.15):
+        """Calculate fixed bounds with adaptive padding"""
         all_positions = np.vstack([
             self.sheep_pos_log.reshape(-1, 2),
             self.dog_pos_log.reshape(-1, 2)
         ])
 
-        x_min, y_min = all_positions.min(axis=0) - padding
-        x_max, y_max = all_positions.max(axis=0) + padding
+        x_min, y_min = all_positions.min(axis=0)
+        x_max, y_max = all_positions.max(axis=0)
+
+        # Adaptive padding based on data range
+        x_range = x_max - x_min
+        y_range = y_max - y_min
+        x_padding = x_range * padding_ratio
+        y_padding = y_range * padding_ratio
+
+        x_min -= x_padding
+        x_max += x_padding
+        y_min -= y_padding
+        y_max += y_padding
 
         return (x_min, x_max, y_min, y_max), all_positions.mean(axis=0)
 
@@ -179,48 +195,18 @@ class HerdingAnimation:
 
     def export_data(self):
         """Export metrics and simulation data to CSV"""
-        timestamp = pygame.time.get_ticks()
+        results = {
+            'pos_s': self.sheep_pos_log[np.newaxis, :, :, :],
+            'pos_d': self.dog_pos_log[np.newaxis, :, :],
+            'vel_s': self.sheep_vel_log[np.newaxis, :, :, :],
+            'vel_d': self.dog_vel_log[np.newaxis, :, :],
+            'spd_d': self.dog_speeds_log[np.newaxis, :],
+            'no_runs': 1,
+            'params': self.params
+        }
 
-        # Export metrics
-        metrics_file = self.export_dir / f"metrics_{timestamp}.csv"
-        with open(metrics_file, 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(['frame', 'cohesion', 'polarization', 'dog_speed'])
-
-            for frame in range(self.num_frames):
-                dog_speed = self.dog_speeds_log[frame] if self.dog_speeds_log is not None else 0
-                writer.writerow([
-                    frame,
-                    self.cohesion_log[frame] if self.show_metrics else 0,
-                    self.polarization_log[frame] if self.show_metrics else 0,
-                    dog_speed
-                ])
-
-        # Export positions
-        positions_file = self.export_dir / f"positions_{timestamp}.csv"
-        with open(positions_file, 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(['frame', 'entity_type', 'entity_id', 'x', 'y', 'vx', 'vy'])
-
-            for frame in range(self.num_frames):
-                # Sheep
-                for sheep_id in range(self.num_sheep):
-                    writer.writerow([
-                        frame, 'sheep', sheep_id,
-                        self.sheep_pos_log[frame, sheep_id, 0],
-                        self.sheep_pos_log[frame, sheep_id, 1],
-                        self.sheep_vel_log[frame, sheep_id, 0],
-                        self.sheep_vel_log[frame, sheep_id, 1]
-                    ])
-
-                # Dog
-                writer.writerow([
-                    frame, 'dog', 0,
-                    self.dog_pos_log[frame, 0],
-                    self.dog_pos_log[frame, 1],
-                    self.dog_vel_log[frame, 0],
-                    self.dog_vel_log[frame, 1]
-                ])
+        utils.utils.save_simulation_results(results,
+                                            '../data/simulation_run_' + ''.join(random.choices(string.ascii_uppercase, k=8)))
 
     def render_overlay(self, screen, font):
         """Render left sidebar with information"""

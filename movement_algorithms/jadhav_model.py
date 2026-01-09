@@ -1,5 +1,5 @@
 import numpy as np
-# Implementation of the Vivek et al. herding model
+# Implementation of the Jadhav et al. herding model
 
 # Observations:
 #  - The Target is set to (0,0) this is why there is no r_T in the dog position calculation

@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import scipy
 
-from movement_algorithms.vivek_model import herding_model
+from movement_algorithms.jadhav_model import herding_model
 from utils.utils import load_simulation_results_matlab, extract_initial_conditions
 
 

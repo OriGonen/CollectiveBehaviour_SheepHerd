@@ -1,8 +1,6 @@
 import numpy as np
 from scipy.io import loadmat
 
-from movement_algorithms.vivek_model import herding_model
-
 
 def load_matlab_herding_data(filename):
     data = loadmat(filename)
@@ -108,160 +106,10 @@ def extract_initial_conditions(pos_s, pos_d):
     return pos_s[0], pos_d[0]
 
 
-def run_simulations(n_runs, no_shp, box_length, rad_rep_s, rad_rep_dog, K_atr, k_atr,
-                    k_alg, vs, v_dog, h, rho_a, rho_d, e, c, alg_str, f_n,
-                    pd, pc, n_iter, seed=None):
-    """
-    Run multiple simulations of the herding model and collect results.
-
-    Parameters:
-    -----------
-    n_runs : int
-        Number of simulation runs to perform
-    no_shp : int
-        Number of sheep
-    box_length : float
-        Size of the simulation box
-    rad_rep_s : float
-        Repulsion radius between sheep
-    rad_rep_dog : float
-        Repulsion radius between dog and sheep
-    K_atr : int
-        Number of nearest neighbors to consider for attraction
-    k_atr : int
-        Number of neighbors randomly selected from K_atr for attraction
-    k_alg : int
-        Number of neighbors for alignment
-    vs : float
-        Speed of sheep
-    v_dog : float
-        Speed of dog
-    h : float
-        Inertia parameter
-    rho_a : float
-        Repulsion strength between sheep
-    rho_d : float
-        Repulsion strength from dog
-    e : float
-        Random noise strength
-    c : float
-        Attraction strength
-    alg_str : float
-        Alignment strength
-    f_n : float
-        Threshold distance for collecting behavior
-    pd : float
-        Distance behind center of mass for driving
-    pc : float
-        Distance behind furthest sheep for collecting
-    n_iter : int
-        Number of iterations per simulation
-    seed : int, optional
-        Random seed for reproducibility
-
-    Returns:
-    --------
-    results : dict
-        Dictionary containing all simulation results and parameters
-    """
-    if seed is not None:
-        np.random.seed(seed)
-
-    # Initialize storage arrays for all runs
-    # Shape: (n_runs, n_iter, no_shp, 2) for sheep positions/velocities
-    all_pos_s = np.zeros((n_runs, n_iter, no_shp, 2))
-    all_vel_s = np.zeros((n_runs, n_iter, no_shp, 2))
-
-    # Shape: (n_runs, n_iter, 2) for dog positions/velocities
-    all_pos_d = np.zeros((n_runs, n_iter, 2))
-    all_vel_d = np.zeros((n_runs, n_iter, 2))
-
-    # Shape: (n_runs, n_iter) for scalar data
-    all_spd_d = np.zeros((n_runs, n_iter))
-    all_collect_t = np.zeros((n_runs, n_iter))
-    all_drive_t = np.zeros((n_runs, n_iter))
-    all_force_slow_t = np.zeros((n_runs, n_iter))
-
-    print(f"Running {n_runs} simulations with {n_iter} iterations each...")
-
-    for run in range(n_runs):
-        if (run + 1) % max(1, n_runs // 10) == 0:
-            print(f"  Completed {run + 1}/{n_runs} runs")
-
-        # Run a single simulation
-        pos_s, pos_d, vel_s, vel_d, spd_d, collect_t, drive_t, force_slow_t = herding_model(
-            no_shp=no_shp,
-            box_length=box_length,
-            rad_rep_s=rad_rep_s,
-            rad_rep_dog=rad_rep_dog,
-            K_atr=K_atr,
-            k_atr=k_atr,
-            k_alg=k_alg,
-            vs=vs,
-            v_dog=v_dog,
-            h=h,
-            rho_a=rho_a,
-            rho_d=rho_d,
-            e=e,
-            c=c,
-            alg_str=alg_str,
-            f_n=f_n,
-            pd=pd,
-            pc=pc,
-            n_iter=n_iter
-        )
-
-        # Store results
-        all_pos_s[run] = pos_s
-        all_vel_s[run] = vel_s
-        all_pos_d[run] = pos_d
-        all_vel_d[run] = vel_d
-        all_spd_d[run] = spd_d
-        all_collect_t[run] = collect_t
-        all_drive_t[run] = drive_t
-        all_force_slow_t[run] = force_slow_t
-
-    print("All simulations completed!")
-
-    # Package results with parameters
-    results = {
-        'pos_s': all_pos_s,
-        'vel_s': all_vel_s,
-        'pos_d': all_pos_d,
-        'vel_d': all_vel_d,
-        'spd_d': all_spd_d,
-        'collect_t': all_collect_t,
-        'drive_t': all_drive_t,
-        'force_slow_t': all_force_slow_t,
-        'no_runs': n_runs,
-        'params': {
-            'no_shp': no_shp,
-            'box_length': box_length,
-            'rad_rep_s': rad_rep_s,
-            'rad_rep_dog': rad_rep_dog,
-            'K_atr': K_atr,
-            'k_atr': k_atr,
-            'k_alg': k_alg,
-            'vs': vs,
-            'v_dog': v_dog,
-            'h': h,
-            'rho_a': rho_a,
-            'rho_d': rho_d,
-            'e': e,
-            'c': c,
-            'alg_str': alg_str,
-            'f_n': f_n,
-            'pd': pd,
-            'pc': pc,
-            'n_iter': n_iter,
-            'seed': seed
-        }
-    }
-
-    return results
-
-
 def save_simulation_results(results, filename):
+    if 'params' not in results:
+        print("no parameters passed or found")
+
     if not filename.endswith('.npz'):
         filename += '.npz'
 
@@ -276,9 +124,9 @@ def load_simulation_results(filename):
     data = np.load(filename, allow_pickle=True)
     results = data['results'].item()
 
+    if 'params' not in results:
+        print("no parameters passed or found")
+
     print(f"Loaded results from {filename}")
-    print(f"  Runs: {results['no_runs']}")
-    print(f"  Iterations: {results['params']['n_iter']}")
-    print(f"  Sheep: {results['params']['no_shp']}")
 
     return results
