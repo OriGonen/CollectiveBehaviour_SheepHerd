@@ -121,15 +121,26 @@ def run_simulations_ftm(n_runs, no_shp, box_length, rad_rep_s, rad_rep_dog, K_at
     return results
 
 if __name__ == "__main__":
-    n_runs = 100 # Reduced for faster testing, adjust as needed
+    n_runs = 300 # Reduced for faster testing, adjust as needed
     n_iter = 370
     num_sheep = 14
 
+    ones = np.ones(int(num_sheep / 2)) / 2
+    zeros = np.zeros(int(num_sheep / 2)) + 0.1
     filename = f'ftm_{num_sheep}_{n_runs}_{n_iter}'
     rad_rep_s = 2
+    F_i = np.concatenate([ones, zeros])
+    R_i = np.concatenate([zeros, zeros])
+
+    # F_i = np.ones(num_sheep)
+    # R_i = np.ones(num_sheep)
+    F_d = 0.5
+    R_d = 0.1
+    L_D = 1
+
     params = dict(
         no_shp=num_sheep,
-        box_length=250,
+        box_length=500,
         rad_rep_s=rad_rep_s,
         rad_rep_dog=12,
         K_atr=10,
@@ -148,19 +159,19 @@ if __name__ == "__main__":
         pc=rad_rep_s,
         n_iter=n_iter,
         delta_t=1,
-        F_i=np.full(num_sheep, 0.1),
-        R_i=np.full(num_sheep, 0.02),
+        F_i=F_i,
+        R_i=R_i,
         TL_max_dog=0.8,
         TL_max_soc=0.2,
-        L_D=10,
-        L_R=10,
+        L_D=1,
+        L_R=1,
         v_s_min=0.1,
         v_d_min=0.5,
         v_d_close=0.5,
         TL_gather=0.6,
         TL_drive=0.6,
-        F_d=0.1,
-        R_d=0.02,
+        F_d=F_d,
+        R_d=R_d,
         L_D_d=10,
         L_R_d=10
     )

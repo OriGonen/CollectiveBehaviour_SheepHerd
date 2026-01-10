@@ -53,7 +53,7 @@ class HerdingAnimation:
         self.frame = 0
         self.frame_accumulator = 0.0
         self.paused = False
-        self.speed = 1.0
+        self.speed = .3
         self.render_mode = 0
         self.modes = ["Dots", "Dots + Arrows"]
 
@@ -85,8 +85,13 @@ class HerdingAnimation:
         x_max += x_padding
         y_min -= y_padding
         y_max += y_padding
+        # print(x_min)
+        # print(x_max)
+        # print(y_min)
+        # print(y_max)
 
         return (x_min, x_max, y_min, y_max), all_positions.mean(axis=0)
+        #return (x_padding, 500 + x_padding, y_padding , 500 - y_padding), all_positions.mean(axis=0)
 
     def _calculate_game_viewport(self):
         """Calculate a viewport that fits bounded box into the game area"""

@@ -245,8 +245,8 @@ if __name__ == "__main__":
         print("RUNNING STROMBOM ALGORITHM".center(70))
         print("=" * 70 + "\n")
 
-        from movement_algorithms.Stormbom_movement_functions import (
-            simulate_model_strombom_main
+        from Movement_Algorithms.jadhav_model import (
+            herding_model
         )
 
         strombom_params = dict(

@@ -28,6 +28,19 @@ def calculate_all_metrics(data):
         'relative': np.array(relative_all)
     }
 
+def plot_relative_position(data,data_matlab,ylabel=None,color='#2365C4',filename=None):
+    # print(data.shape)
+    # for i in range(data.shape[1]):
+    #     print(np.mean(data[:,i]))
+
+    plt.figure(figsize=(10, 7.5))
+
+    plt.boxplot([data[:, i] for i in range(data.shape[1])],showfliers=True)
+
+    plt.xlabel(xlabel="Sheep ID")
+    plt.ylabel(ylabel=ylabel)
+    plt.xticks(range(1, 15), [str(i) for i in range(1, 15)])
+    plt.savefig(filename,dpi=150,bbox_inches='tight')
 
 
 def compute_pdf(data, bins):
@@ -96,7 +109,7 @@ def plot_metric_pdf(data, data_matlab=None, bins=None, xlabel='', color='#2365C4
     plt.tight_layout()
     if filename:
         plt.savefig(filename, dpi=150, bbox_inches='tight')
-    plt.show()
+    #plt.show()
 
     return fig, ax
 
@@ -123,14 +136,15 @@ def load_data(filename):
 
 
 if __name__ == "__main__":
-    filename = "../data/vivek_14_300_370.npz"
-    filename_matlab = "../data/fixed_hm_n_14.mat"
+    filename = "../data/test_jadhav_14_300_370.npz"
+    name = "jadhav"
+    #filename_matlab = "../data/fixed_hm_n_14.mat"
 
     data = load_data(filename)
     metrics = calculate_all_metrics(data)
 
-    data_matlab = load_data(filename_matlab)
-    metrics_matlab = calculate_all_metrics(data_matlab)
+    #data_matlab = load_data(filename_matlab)
+    #metrics_matlab = calculate_all_metrics(data_matlab)
 
     plot_metric_pdf(
         data=metrics['polarization'],
@@ -138,7 +152,7 @@ if __name__ == "__main__":
         bins=np.linspace(0, 1, 26),
         xlabel='Group Polarization',
         color='#2365C4',
-        filename='polarization_pdf.png'
+        filename=f'{name}_polarization_pdf.pdf'
     )
 
     plot_metric_pdf(
@@ -147,7 +161,7 @@ if __name__ == "__main__":
         bin_width=0.2,
         xlabel='Cohesion (m)',
         color='#964B00',
-        filename='cohesion_pdf.png'
+        filename=f'{name}_cohesion_pdf.pdf'
     )
 
     plot_metric_pdf(
@@ -156,5 +170,20 @@ if __name__ == "__main__":
         bin_width=0.2,
         xlabel='Elongation',
         color='#A020F0',
-        filename='elongation_pdf.png'
+        filename=f'{name}_elongation_pdf.pdf'
     )
+    plot_metric_pdf(
+        data=metrics['lateral'],
+        data_matlab=None,
+        bin_width=0.2,
+        xlabel='Lateral',
+        color='#A020F0',
+        filename=f'{name}_lateral_pdf.pdf'
+    )
+    plot_relative_position(
+        metrics['relative'],
+                           None,
+                           ylabel="d",
+                           color='#2365C4',
+                           filename=f'{name}_relative.pdf')
+
