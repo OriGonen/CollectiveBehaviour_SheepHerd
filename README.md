@@ -7,14 +7,24 @@ The starting point of the project is the paper **Collective responses of flockin
 
 The GitHub repository of the paper (including the model and data) can be found here https://github.com/tee-lab/collective-responses-of-flocking-sheep-to-herding-dog.
 
-Our goal in the project is to study how sheep behave collectively in a herding setting by expanding on the paper's presented model.
-
 ## Collaborators (Group E)
 | name | github username |
 |------|-----------------|
 | Ori Gonen | _OriGonen_ |
 | Marko Muc | _MarkoMuc_ |
 | Jan Flajžík | _JanFlajz_ |
+
+
+## Abstract
+The purpose of this project is to study, implement, and evaluate existing shepherding algorithms based on various flock properties. In order to do so, we implemented a fatigue-augmented shepherding model inspired by the three-compartment controller model for describing muscle activation, fatigue, and recovery that takes into account the muscular properties of individual sheep.  In this report we investigate how the parameters influence the flock properties in shepherding. Results show that different fatigue and recovery rates highly influence the cohesion of the flock. 
+
+## Summary of obtained results
+- We reimplemented original the original model from Jahvad et al.
+- We designed and implemented fatigeu-augmented model inspired by 3CC model for muscle fatigue and recovery in individuals
+- Compared those two models based on Cohesion, elongation, polarization, dog lateral movements and  average relative spatial position
+- Discovered that high difference in fatigue rate highly influences the cohesion of the flock in herding
+- Discovered that fatigue nor recovery rate of any value does not affect the properties of the flock, just dogs lateral movements
+
 
 
 ## Our Plan Throughout the Course
@@ -39,7 +49,11 @@ After finishing and polishing our final report, we will prepare the presentation
 	- ~~Conduct experiments with different parameters~~
 	- ~~Create a simulation video to demonstrate~~
  	- ~~Create the presentation~~
-    - The final report is available [here](https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/blob/main/report/GroupE_FinalReport.pdf)
+    - The final report is available [here]
+(https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/blob/main/report/GroupE_FinalReport.pdf)
+- The simulation video is available [her]
+(https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/tree/main/video)
+
 
 ## Running the simulation
 
@@ -67,3 +81,19 @@ Run the simulation:
 ```bash
 python visualize.py
 ```
+
+Keybinds
+
+- Space — Pause / resume the simulation
+
+- Up Arrow or = — Increase simulation speed
+
+- Down Arrow or - — Decrease simulation speed
+
+- R — Reset the simulation frame counter
+
+- M — Changes the render modes (nodes, nodes + arrows)
+
+- E — Export simulation data
+
+- Q or Esc — Quit the application
