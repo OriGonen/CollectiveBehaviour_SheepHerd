@@ -50,7 +50,8 @@ After finishing and polishing our final report, we will prepare the presentation
 	- ~~Create a simulation video to demonstrate~~
  	- ~~Create the presentation~~
     - The final report is available [here](https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/blob/main/report/GroupE_FinalReport.pdf)
-- The simulation video is available [here](https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/tree/main/video)
+    - The presentation slides are available [here](https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/blob/main/report/Collective_Behavior_Presentation.pdf)
+	- The simulation video is available [here](https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/tree/main/video)
 
 
 ## Running the simulation
