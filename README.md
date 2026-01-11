@@ -49,10 +49,8 @@ After finishing and polishing our final report, we will prepare the presentation
 	- ~~Conduct experiments with different parameters~~
 	- ~~Create a simulation video to demonstrate~~
  	- ~~Create the presentation~~
-    - The final report is available [here]
-(https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/blob/main/report/GroupE_FinalReport.pdf)
-- The simulation video is available [her]
-(https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/tree/main/video)
+    - The final report is available [here](https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/blob/main/report/GroupE_FinalReport.pdf)
+- The simulation video is available [here](https://github.com/OriGonen/CollectiveBehaviour_SheepHerd/tree/main/video)
 
 
 ## Running the simulation
