@@ -1,0 +1,340 @@
+\documentclass[9pt]{pnas-new}
+% Use the lineno option to display guide line numbers if required.
+% Note that the use of elements such as single-column equations
+% may affect the guide line number alignment. 
+
+%\RequirePackage[english,slovene]{babel} % when writing in slovene
+\RequirePackage[slovene,english]{babel} % when writing in english
+\DeclareUnicodeCharacter{202F}{ }
+\usepackage{amsmath}
+
+
+\templatetype{pnasresearcharticle} % Choose template 
+% {pnasresearcharticle} = Template for a two-column research article
+% {pnasmathematics} = Template for a one-column mathematics article
+% {pnasinvited} = Template for a PNAS invited submission
+
+\selectlanguage{english}
+%\etal{in sod.} % comment out when writing in english
+%\renewcommand{\Authands}{ in } % comment out when writing in english
+%\renewcommand{\Authand}{ in } % comment out when writing in english
+
+\newcommand{\set}[1]{\ensuremath{\mathbf{#1}}}
+\renewcommand{\vec}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\uvec}[1]{\ensuremath{\hat{\vec{#1}}}}
+\newcommand{\const}[1]{{\ensuremath{\kappa_\mathrm{#1}}}} 
+
+\newcommand{\num}[1]{#1}
+
+\graphicspath{{./fig/}}
+
+\title{Evaluation of shepherding algorithms based on flock properties}
+
+% Use letters for affiliations, numbers to show equal authorship (if applicable) and to indicate the corresponding author
+\author{Ori Gonen}
+\author{Jan Flajžík}
+\author{Marko Zupančič Muc} 
+
+\affil{Collective behaviour course research seminar report} 
+
+% Please give the surname of the lead author for the running footer
+\leadauthor{JF} 
+
+\usepackage{subcaption}
+
+
+\selectlanguage{english}
+
+% Please add here a significance statement to explain the relevance of your work
+\significancestatement{}{\textbf{We study existing sheep herding algorithms. By implementing a fatigue-augmented shepherding model, we simulate how muscular properties of sheep influence flock dynamics while herding.   } }
+
+\selectlanguage{english}
+
+% Please include corresponding author, author contribution and author declaration information
+%\authorcontributions{Please provide details of author contributions here.}
+%\authordeclaration{Please declare any conflict of interest here.}
+%\equalauthors{\textsuperscript{1}A.O.(Author One) and A.T. (Author Two) contributed equally to this work (remove if not applicable).}
+%\correspondingauthor{\textsuperscript{2}To whom correspondence should be addressed. E-mail: author.two\@email.com}
+
+% Keywords are not mandatory, but authors are strongly encouraged to provide them. If provided, please include two to five keywords, separated by the pipe symbol, e.g:
+\keywords{Sheep herding | Flock behavior | Collective behavior} 
+
+\begin{abstract}
+The purpose of this project is to study, implement, and evaluate existing shepherding algorithms based on various flock properties. In order to do so, we implemented a fatigue-augmented shepherding model inspired by the three-compartment controller model for describing muscle activation, fatigue, and recovery that takes into account the muscular properties of individual sheep.  In this report we investigate how the parameters influence the flock properties in shepherding. Results show that different fatigue and recovery rates highly influence the cohesion of the flock.  
+\end{abstract}
+
+\dates{\textbf{\today}}
+\program{BMA-RI}
+\vol{2025/26}
+\no{Group E} % group ID
+%\fraca{FRIteza/201516.130}
+
+\begin{document}
+
+% Optional adjustment to line up main text (after abstract) of first page with line numbers, when using both lineno and twocolumn options.
+% You should only change this length when you've finalised the article contents.
+\verticaladjustment{-2pt}
+
+\maketitle
+\thispagestyle{firststyle}
+\ifthenelse{\boolean{shortarticle}}{\ifthenelse{\boolean{singlecolumn}}{\abscontentformatted}{\abscontent}}{}
+
+% If your first paragraph (i.e. with the \dropcap) contains a list environment (quote, quotation, theorem, definition, enumerate, itemize...), the line after the list may have some extra indentation. If this is the case, add \parshape=0 to the end of the list environment.
+%\dropcap{}  
+
+\section*{Introduction}
+\dropcap{C}ollective escape responses are a hallmark of group living, where a dog repeatedly induces coordinated movement of the flock \cite{King2012, Jadhav2024}. Recent experiments with high-resolution tracking reveal that, even though the dog chases from behind, directional information propagates from the front of the flock toward the rear on short timescales, and the dog adjusts its motion in response to flock dynamics \cite{Jadhav2024}. These findings have been captured by an agent-based shepherding model.
+
+Herding is also a sustained locomotor task for both sheep and dog, suggesting that movement capacity may vary over time due to fatigue. Incorporating fatigue into shepherding models is therefore interesting, as a mechanism for history-dependent locomotion under repeated threat.
+
+Here, we extend the discrete-time shepherding model of Jadhav \textit{et al.} \cite{Jadhav2024} by adding an internal fatigue state to each agent while leaving all interaction rules unchanged. Fatigue modulates only locomotor speed. We implement fatigue using the three-compartment controller (3CC) model \cite{3cc}, interpreting its three compartments not as explicit muscle pools but as an abstract, whole-body locomotor capacity. Task demand is derived from behavioural context in the shepherding task, and fatigue reduces achievable speed while preserving the directional decision-making of the baseline model.
+
+\section*{Related work}
+
+Sheepherding offers an opportunity to study collective escape under a repeatable, controllable "predator-like" stimulus. Empirical work shows that sheep perceive herding dogs as threatening and respond with increased stress markers and fear-related behavior \cite{Kilgour1990, King2012}.
+
+On the modelling side, foundational shepherding models formalize how a dog can gather and drive a group using simple heuristics and local interactions \cite{Strombom2014}. Building on this tradition, Jadhav \textit{et al.} developed an agent-based model that reproduces key collective observables (cohesion, polarization, elongation) and captures directional information flow within the flock \cite{Jadhav2024}.
+
+Energy constraints are increasingly recognized as important in agent-based modeling \cite{Sibly2013}. In biomechanics and ergonomics, a computationally efficient approach to peripheral fatigue is the three-compartment controller (3CC) model, which represents resting, activated, and fatigued capacity and uses a bounded proportional controller to track a target load while producing fatigue and recovery dynamics \cite{3cc}.
+
+\section*{Methods}
+To achieve the goal of this project, we implemented the original algorithm from \cite{Jadhav2024}, and then integrated fatigue modeling.
+
+For fatigue dynamics, we adopted the three-compartment controller (3CC) model of Xia and Frey Law \cite{3cc}. We selected 3CC for the following reasons: It is explicitly formulated to handle variable loading conditions through a time-varying target-load input, producing both fatigue and recovery within one dynamical system \cite{3cc}. Additionally, the original work reports that endurance-time predictions are relatively insensitive to wide changes in certain controller gains, supporting use in settings where parameters cannot be individually fit for each agent \cite{3cc}.
+
+\subsection{Original model}
+
+The discrete-time shepherding proposed by Jadhav \textit{et al.} \cite{Jadhav2024} calculates the sheep positions based on Selective Social Interactions among sheep flock including \textit{attraction to the center of local neighbors, of the velocity direction to the average of neighbors and repulsion from the herding dog}.  
+ 
+The herding logic of the shepherd works on assessing whether the dog needs to drive the flock forward or collect the strays. This mechanism splits the behavior into two modes:
+
+\begin{enumerate}
+    \item \textbf{Collecting mode:} the dog moves to collect stray sheep.
+    This mode takes place when the group is not cohesive.
+    \item \textbf{Driving mode:} the dog moves behind the herd to push it forward.
+    This mode occurs when the group is cohesive.
+\end{enumerate}
+
+\subsection{Fatigue-augmented shepherding model}
+\label{subsec:fam}
+
+We extend the original model by adding an internal fatigue state to each agent (sheep and dog). All interaction rules that determine the heading \(\phi_i^{n+1}\) are left unchanged; fatigue modulates only locomotor speed (step length). This choice preserves the directional and social-interaction mechanisms of ref.~\cite{Jadhav2024} while enabling state-dependent locomotion.
+
+\paragraph{Three-compartment fatigue dynamics (3CC).}
+For each sheep \(i\in\{1,\dots,N\}\) (and the dog \(D\)), we track three compartment fractions: resting \(M_{R,i}^n\), active \(M_{A,i}^n\), and fatigued \(M_{F,i}^n\), with the simplex constraint
+
+\begin{equation}
+\label{eq:3cc_simplex}
+M_{R,i}^n + M_{A,i}^n + M_{F,i}^n = 1,
+\qquad
+M_{R,i}^n, M_{A,i}^n, M_{F,i}^n \in [0,1].
+\end{equation}
+
+We adopt the three-compartment controller (3CC) model~\cite{3cc} and discretize it via explicit Euler using the same timestep as the base shepherding model, \(\Delta t = 1\,\mathrm{s}\)~\cite{Jadhav2024}:
+
+\begin{align}
+\label{eq:3cc_update_mr}
+\tilde{M}_{R,i}^{n+1} &= M_{R,i}^{n} + \Delta t\left(-C_i^n + R_i M_{F,i}^{n}\right),\\
+\label{eq:3cc_update_ma}
+\tilde{M}_{A,i}^{n+1} &= M_{A,i}^{n} + \Delta t\left( C_i^n - F_i M_{A,i}^{n}\right),\\
+\label{eq:3cc_update_mf}
+\tilde{M}_{F,i}^{n+1} &= M_{F,i}^{n} + \Delta t\left( F_i M_{A,i}^{n} - R_i M_{F,i}^{n}\right),
+\end{align}
+
+where \(F_i>0\) and \(R_i>0\) are fatigue and recovery rates, and \(C_i^n\) is the activation-deactivation drive (defined below).
+
+To enforce Eq.~\eqref{eq:3cc_simplex} with a simple implementation, we recompute the resting compartment by conservation:
+$M_{R,i}^{n+1} = 1 - M_{A,i}^{n+1} - M_{F,i}^{n+1}$.
+
+\paragraph{Task demand (target load) for sheep.}
+In the 3CC model, the target load \(TL\) is a unitless demand signal, under our normalization we take \(TL\in[0,1]\) and interpret it as a required activation fraction~\cite{3cc}. In the base shepherding model, sheep respond both to the dog and to nearby sheep~\cite{Jadhav2024}. We therefore define sheep demand as the sum of (i) dog-induced demand and (ii) a smaller sheep to sheep proximity demand.
+
+\textit{Dog-induced demand.}
+Let \(d_{iD}^n\) denote the distance between sheep \(i\) and the dog at timestep \(n\), and \(R_D\) the dog-interaction radius. We define
+\begin{equation}
+\label{eq:tl_sheep_dog}
+TL_{i,\mathrm{dog}}^n =
+\begin{cases}
+0, & d_{iD}^n \ge R_D,\\[4pt]
+TL_{\mathrm{dog}}^{\max}\left(1-\dfrac{d_{iD}^n}{R_D}\right),
+& d_{iD}^n < R_D,
+\end{cases}
+\end{equation}
+where \(TL_{\mathrm{dog}}^{\max}\in[0,1]\).
+
+\textit{Sheep to sheep proximity demand.}
+Let \(d_{ij}^n\) be the distance between sheep \(i\) and \(j\), and define the nearest-neighbour distance \(d_{i,\min}^n = \min_{j\ne i} d_{ij}^n\). Using the repulsion distance \(d_{\mathrm{rep}}\) from ref.~\cite{Jadhav2024}, we set
+
+\begin{equation}
+\label{eq:tl_sheep_sheep}
+TL_{i,\mathrm{soc}}^n =
+\begin{cases}
+0, & d_{i,\min}^n \ge d_{\mathrm{rep}},\\[4pt]
+TL_{\mathrm{soc}}^{\max}\left(1-\dfrac{d_{i,\min}^n}{d_{\mathrm{rep}}}\right),
+& d_{i,\min}^n < d_{\mathrm{rep}},
+\end{cases}
+\end{equation}
+
+with \(TL_{\mathrm{soc}}^{\max}\in[0,1]\) chosen smaller than \(TL_{\mathrm{dog}}^{\max}\),
+reflecting that collision avoidance should impose a weaker locomotor demand than fleeing the dog.
+
+\textit{Overall sheep demand.}
+We then combine both contributions into a single target load for 3CC:
+\begin{equation}
+\label{eq:tl_sheep_total}
+TL_i^n = \min\!\left(1,\ TL_{i,\mathrm{dog}}^n + TL_{i,\mathrm{soc}}^n\right).
+\end{equation}
+
+\paragraph{Activation drive.}
+We compute \(C_i^n\) using the bounded proportional controller of ref.~\cite{3cc}:
+\begin{equation}
+\label{eq:controller_c}
+C_i^n =
+\begin{cases}
+L_D\left(TL_i^n - M_{A,i}^n\right),
+& M_{A,i}^n < TL_i^n\ \wedge\ M_{R,i}^n \ge (TL_i^n - M_{A,i}^n),\\
+L_D M_{R,i}^n,
+& M_{A,i}^n < TL_i^n\ \wedge\ M_{R,i}^n < (TL_i^n - M_{A,i}^n),\\
+L_R\left(TL_i^n - M_{A,i}^n\right),
+& M_{A,i}^n \ge TL_i^n,
+\end{cases}
+\end{equation}
+where \(L_D\) and \(L_R\) are fixed tracking gains.
+
+\paragraph{Dog task demand.}
+The dogs behaviour follows the mode logic of ref.~\cite{Jadhav2024}. We prescribe a mode-dependent dog target load that does not use the same distance-based mapping as sheep:
+\begin{equation}
+\label{eq:tl_dog}
+TL_D^n =
+\begin{cases}
+TL_{\mathrm{gather}}, & \text{gathering a separated sheep},\\[2pt]
+TL_{\mathrm{drive}}\left(\dfrac{v_B^n}{v_{D,\max}}\right),
+& \text{driving a cohesive flock},\\[6pt]
+0, & \text{idle/rest},
+\end{cases}
+\end{equation}
+where \(TL_{\mathrm{gather}}, TL_{\mathrm{drive}}\in[0,1]\), \(v_B^n\) is the barycenter speed of the sheep flock, and \(v_{D,\max}\) is the dog's maximum speed. In our setting \(v_{D,\max}\) is chosen larger than typical flock speeds, so \(v_B^n/v_{D,\max}\in[0,1]\). This captures the intended distinction that gathering is energetically demanding, whereas driving can be performed at lower intensity while maintaining control of the flock.
+
+\paragraph{Coupling fatigue to locomotion.}
+Positions are updated as in ref.~\cite{Jadhav2024}, but with fatigue-modulated speed:
+
+\begin{equation}
+\label{eq:position_update_fatigue}
+\mathbf{r}_i^{n+1} = \mathbf{r}_i^n + v_i^n \Delta t\ \mathbf{e}(\phi_i^{n+1}).
+\end{equation}
+
+We define residual capacity $RC_i^n = 1 - M_{F,i}^n$, and a fatigue-scaled candidate speed
+
+\begin{equation}
+\label{eq:v_fat}
+v_{i,\mathrm{fat}}^{n} = v_{i,\max}\left(\epsilon_{v,i} + (1-\epsilon_{v,i})RC_i^n\right),
+\qquad
+\epsilon_{v,i}=\frac{v_{i,\min}}{v_{i,\max}}.
+\end{equation}
+
+\textit{Sheep speed: demand gating, fatigue scaling, and minimum speed.}
+We gate sheep locomotion by task demand (grazing/rest corresponds to \(TL_i^n=0\)), while enforcing a positive minimum speed under demand:
+\begin{equation}
+\label{eq:v_sheep}
+v_i^n =
+\begin{cases}
+0, & TL_i^n = 0,\\
+\max\!\left(v_{S,\min},\ \min\!\left(v_{S,\max},\, v_{i,\mathrm{fat}}^{n}\right)\right),
+& TL_i^n > 0.
+\end{cases}
+\end{equation}
+
+\textit{Dog speed: always moving, fatigue scaling, and close-range cap.}
+The dog is assumed to move continuously to execute the herding policy. We combine a fatigue-dependent lower bound with the close-range slowdown rule of ref.~\cite{Jadhav2024}. Let \(l_a\) be the dog--sheep close-distance threshold and define
+\begin{equation}
+\label{eq:v_dog_cap}
+v_{D,\mathrm{cap}}^n =
+\begin{cases}
+v_{D,\mathrm{close}}, & \min_i d_{iD}^n < l_a,\\
+v_{D,\max}, & \text{otherwise}.
+\end{cases}
+\end{equation}
+Then the dog speed is
+\begin{equation}
+\label{eq:v_dog}
+v_D^n = \min\!\left(v_{D,\mathrm{cap}}^n,\ \max\!\left(v_{D,\min},\, v_{D,\mathrm{fat}}^{n}\right)\right),
+\end{equation}
+with \(v_{D,\min}\) chosen to match the close-range minimum \(v_{D,\mathrm{close}}\), ensuring \(v_D^n>0\) even under maximal fatigue while preventing unrealistic overlaps during close pursuit.
+
+\subsection{Comparison metrics}
+To compare the performance of the algorithms, we utilized the following metrics:
+
+\textbf{Cohesion}  defined as the average distance of all sheep from the flock's barycenter at each time step, \textbf{elongation} of the sheep flock,  \textbf{polarization} of the sheep flock, \textbf{lateral movements} of the dog,  \textbf{average relative spatial position} of sheep $i$  $$d_i = \frac{1}{N} \sum_j \langle (\vec{x}_j - \vec{x}_i) \cdot \vec{v}_{flock} \rangle_t,$$
+ where $x_{i}, x_j$ are the position of sheep $i$ and $j$ respectively and $\vec{v}_{flock}$ is the average speed of the flock, all averaged in time $t$. If $d_i$ > 0, the sheep tend to be in the front of the flock, whereas $d_i$ < 0, the sheep is in the rear.
+
+\section*{Results}
+The experiments were performed on a sheep flock of size 14 since different sizes did not lead to any significant changes in observed metrics. We compared the original and fatigue-augmented model with different parameters settings.
+
+In terms of fatigue-augmented model, we observe that the highest influence on the flock behavior arises when tuning the values of fatigue rate $F_i$ and recovery rates $R_i$ of sheep $i$. The highest difference appears when the fatigue rate varies among sheep.
+
+
+
+
+Figure \ref{fig:comparasion} compares  the original and Fatigue-augmented model with $F_i$ of the first half of the flock equal to \textit{0.5} and \textit{0.1} for the second half and $R_i = 0.01$ for all sheep. 
+
+We see that the polarization reaches higher values than in the original model. This is connected to the average relative spatial position, it is clear that sheep with higher fatigue rate stay at the rear of the flock.  
+
+
+
+
+
+\begin{figure*}[h!]
+    \centering
+    % --- First Row ---
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{fig/jadhav_cohesion_pdf.pdf}
+        
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{fig/ftm_cohesion_pdf.pdf}
+        
+    \end{subfigure}
+    
+    % --- Vertical spacing between rows ---
+    \vspace{0.1cm} 
+    
+    % --- Second Row ---
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{fig/jadhav_relative.pdf}
+        
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{fig/ftm_relative.pdf}
+        
+    \end{subfigure}
+    
+    \caption{The comparison of PDF of cohesion (first row) and average relative spatial position (second row) of original model (left column) and fatigue-augmented model (right column). Number of runs: 300, number of iterations in each run: 370. Flock size: 14}
+    \label{fig:comparasion}
+\end{figure*}
+
+\section*{Discussion}
+A limitation of our current approach is that it represents fatigue as a single process. Extending to a four-compartment controller that separates central and peripheral fatigue would likely be more realistic, especially for sustained or dynamic tasks \cite{Yang2025}. More empirical data is also needed to tune and validate parameters, including field-derived endurance metrics from tracking collars and speed-duration relationships \cite{RozierDelgado2025}, as well as energetic costs during pursuit and evasion \cite{Bryce2017}.
+
+Finally, incorporating rapid, repeated turning and collective direction-change dynamics as an additional locomotor load could improve realism, because maneuvering can raise energetic costs and may accelerate fatigue accumulation \cite{Bryce2017, ZhangLauder2023}.
+The entire source code and other related materials are available in our \href{https://github.com/OriGonen/CollectiveBehaviour_SheepHerd}{GitHub repository}.
+
+\acknow{\textbf{JF} performed the experiments and wrote the results section and plotted graph \textbf{OG} wrote code infrastructure, polished the reports and conducted the presentation, \textbf{MM} developed both models and wrote all of the related sections }
+\showacknow % Display the acknowledgments section
+
+% \pnasbreak splits and balances the columns before the references.
+% If you see unexpected formatting errors, try commenting out this line
+% as it can run into problems with floats and footnotes on the final page.
+%\pnasbreak
+
+\begin{multicols}{2}
+\section*{\bibname}
+ %Bibliography
+\bibliography{./bib/bibliography}
+\end{multicols}
+\end{document}
