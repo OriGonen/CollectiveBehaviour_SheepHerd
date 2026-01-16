@@ -1,4 +1,4 @@
-from movement_algorithms.fatigue_model import herding_model
+from Movement_Algorithms.fatigue_model import herding_model
 
 import numpy as np
 

@@ -10,7 +10,6 @@ from utils.metrics import calculate_cohesion, calculate_polarization
 FONT_SIZE = 30
 
 
-# TODO: Decide if we want scaling or just better calculation of the game window
 
 class HerdingAnimation:
     def __init__(self, sheep_pos_log, dog_pos_log, sheep_vel_log, dog_vel_log,

@@ -76,9 +76,13 @@ pip install -r requirements.txt
 ```
 
 Run the simulation:
-
+1. Jadhav model
 ```bash
-python visualize.py
+python visualize_jadhav.py
+```
+2. FTM model
+```bash
+python visualize_ftm.py
 ```
 
 Keybinds
